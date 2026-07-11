@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import {
@@ -27,6 +27,11 @@ export function AppHeader() {
   const { data: session, status } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const user = session?.user;
+  const isDarkTheme = resolvedTheme === "dark";
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   const authLinks = useMemo(
     () => [
@@ -69,7 +74,7 @@ export function AppHeader() {
           onClick={() => setMobileMenuOpen(false)}
           className={cn(
             "fixed inset-0 z-30 md:hidden",
-            resolvedTheme === "dark" ? "bg-white/14" : "bg-slate-950/52",
+            isDarkTheme ? "bg-white/24" : "bg-slate-950/62",
           )}
         />
       ) : null}
@@ -205,12 +210,38 @@ export function AppHeader() {
         </div>
 
         {mobileMenuOpen ? (
-          <div className="absolute right-0 top-[calc(100%+0.75rem)] z-40 w-[min(88vw,22rem)] rounded-3xl border border-border/80 bg-card/95 p-3 shadow-[0_20px_70px_rgba(22,21,20,0.14)] backdrop-blur md:hidden">
+          <div
+            className={cn(
+              "absolute right-0 top-[calc(100%+0.75rem)] z-40 w-[min(88vw,22rem)] rounded-3xl p-3 shadow-[0_20px_70px_rgba(22,21,20,0.14)] backdrop-blur md:hidden",
+              isDarkTheme
+                ? "border border-slate-200/80 bg-white/95 text-slate-900"
+                : "border border-slate-800/80 bg-slate-950/95 text-slate-50",
+            )}
+          >
             {status === "authenticated" && user ? (
-              <div className="mb-3 rounded-2xl border border-border/80 bg-background/70 p-4">
+              <div
+                className={cn(
+                  "mb-3 rounded-2xl p-4",
+                  isDarkTheme
+                    ? "border border-slate-200 bg-slate-100/80"
+                    : "border border-slate-800 bg-slate-900/80",
+                )}
+              >
                 <p className="font-semibold">{user.name}</p>
-                <p className="mt-1 text-sm text-muted">{user.email}</p>
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted">
+                <p
+                  className={cn(
+                    "mt-1 text-sm",
+                    isDarkTheme ? "text-slate-600" : "text-slate-300",
+                  )}
+                >
+                  {user.email}
+                </p>
+                <p
+                  className={cn(
+                    "mt-2 text-xs uppercase tracking-[0.18em]",
+                    isDarkTheme ? "text-slate-500" : "text-slate-400",
+                  )}
+                >
                   {user.role}
                 </p>
               </div>
@@ -221,7 +252,20 @@ export function AppHeader() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center rounded-2xl px-4 py-3 text-sm text-muted hover:bg-background/80 hover:text-foreground"
+                  className={cn(
+                    "flex items-center rounded-2xl px-4 py-3 text-sm transition-colors",
+                    isDarkTheme
+                      ? "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                      : "text-slate-200 hover:bg-white/10 hover:text-white",
+                    (item.href === "/"
+                      ? pathname === item.href
+                      : pathname === item.href ||
+                        pathname.startsWith(`${item.href}/`))
+                      ? isDarkTheme
+                        ? "bg-slate-100 text-slate-950"
+                        : "bg-white/10 text-white"
+                      : "",
+                  )}
                 >
                   {item.label}
                 </Link>
@@ -233,7 +277,12 @@ export function AppHeader() {
                     setMobileMenuOpen(false);
                     void signOut({ callbackUrl: "/" });
                   }}
-                  className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm text-muted hover:bg-background/80 hover:text-foreground"
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm transition-colors",
+                    isDarkTheme
+                      ? "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                      : "text-slate-200 hover:bg-white/10 hover:text-white",
+                  )}
                 >
                   <LogOut className="size-4" />
                   Logout
