@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
+import { startTransition, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import {
   ChevronDown,
@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 
 export function AppHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const { data: session, status } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -64,6 +65,13 @@ export function AppHeader() {
     ],
     [status, user?.isPortalAdmin],
   );
+
+  function handleMobileNavigation(href: string) {
+    setMobileMenuOpen(false);
+    startTransition(() => {
+      router.push(href);
+    });
+  }
 
   return (
     <header className="sticky top-0 z-40 pt-4">
@@ -248,12 +256,12 @@ export function AppHeader() {
             ) : null}
             <div className="space-y-1">
               {sharedMobileLinks.map((item) => (
-                <Link
+                <button
                   key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
+                  type="button"
+                  onClick={() => handleMobileNavigation(item.href)}
                   className={cn(
-                    "flex items-center rounded-2xl px-4 py-3 text-sm transition-colors",
+                    "flex w-full items-center rounded-2xl px-4 py-3 text-left text-sm transition-colors",
                     isDarkTheme
                       ? "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
                       : "text-slate-200 hover:bg-white/10 hover:text-white",
@@ -268,7 +276,7 @@ export function AppHeader() {
                   )}
                 >
                   {item.label}
-                </Link>
+                </button>
               ))}
               {status === "authenticated" ? (
                 <button
