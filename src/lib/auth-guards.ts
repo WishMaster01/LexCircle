@@ -9,6 +9,15 @@ export async function getAuthSession() {
   return getServerSession(authOptions);
 }
 
+export async function getOptionalAuthSession() {
+  try {
+    return await getServerSession(authOptions);
+  } catch (error) {
+    console.error("Optional session lookup failed", error);
+    return null;
+  }
+}
+
 export function isPortalAdminSession(session: Session | null | undefined) {
   return Boolean(session?.user && session.user.role === UserRole.ADMIN && session.user.isPortalAdmin);
 }

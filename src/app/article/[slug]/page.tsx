@@ -5,7 +5,7 @@ import { Share2 } from "lucide-react";
 import { ArticleEngagementControls } from "@/components/articles/article-engagement-controls";
 import { ArticleCommentsPanel } from "@/components/comments/article-comments-panel";
 import { Badge } from "@/components/ui/badge";
-import { getAuthSession } from "@/lib/auth-guards";
+import { getOptionalAuthSession } from "@/lib/auth-guards";
 import { formatRelativeDate } from "@/lib/utils";
 import { getUserArticleInteractionMap } from "@/services/article-engagement-service";
 import { getArticleBySlug } from "@/services/article-service";
@@ -17,7 +17,7 @@ export default async function ArticlePage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const session = await getAuthSession();
+  const session = await getOptionalAuthSession();
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
 

@@ -104,6 +104,51 @@ function getDemoWorkflowArticles(): DemoWorkflowArticle[] {
   ];
 }
 
+function getDemoCommunityArticles(query: CommunityQuery = {}) {
+  let articles = [...demoArticles];
+
+  if (query.query) {
+    const normalized = query.query.toLowerCase();
+    articles = articles.filter(
+      (article) =>
+        article.title.toLowerCase().includes(normalized) ||
+        article.excerpt.toLowerCase().includes(normalized) ||
+        article.author.name.toLowerCase().includes(normalized) ||
+        article.tags.some((tag) => tag.name.toLowerCase().includes(normalized)),
+    );
+  }
+
+  if (query.category) {
+    articles = articles.filter((article) => article.category.slug === query.category);
+  }
+
+  if (query.tag) {
+    articles = articles.filter((article) => article.tags.some((tag) => tag.slug === query.tag));
+  }
+
+  switch (query.sort) {
+    case "latest":
+      articles.sort((left, right) => +new Date(right.publishedAt) - +new Date(left.publishedAt));
+      break;
+    case "oldest":
+      articles.sort((left, right) => +new Date(left.publishedAt) - +new Date(right.publishedAt));
+      break;
+    case "most-viewed":
+      articles.sort((left, right) => right.viewCount - left.viewCount);
+      break;
+    case "most-liked":
+      articles.sort((left, right) => right.likeCount - left.likeCount);
+      break;
+    case "most-commented":
+      articles.sort((left, right) => right.commentCount - left.commentCount);
+      break;
+    default:
+      articles = rankTrendingArticles(articles);
+  }
+
+  return articles;
+}
+
 function sanitizeContent(content: string) {
   return sanitizeHtml(content, {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "h1", "h2", "h3", "h4"]),
@@ -212,82 +257,49 @@ async function resolveTagIds(inputs: string[]) {
 
 export async function listCommunityArticles(query: CommunityQuery = {}) {
   if (!isDatabaseConfigured()) {
-    let articles = [...demoArticles];
-    if (query.query) {
-      const normalized = query.query.toLowerCase();
-      articles = articles.filter(
-        (article) =>
-          article.title.toLowerCase().includes(normalized) ||
-          article.excerpt.toLowerCase().includes(normalized) ||
-          article.author.name.toLowerCase().includes(normalized) ||
-          article.tags.some((tag) => tag.name.toLowerCase().includes(normalized)),
-      );
-    }
-    if (query.category) {
-      articles = articles.filter((article) => article.category.slug === query.category);
-    }
-    if (query.tag) {
-      articles = articles.filter((article) => article.tags.some((tag) => tag.slug === query.tag));
-    }
-
-    switch (query.sort) {
-      case "latest":
-        articles.sort((left, right) => +new Date(right.publishedAt) - +new Date(left.publishedAt));
-        break;
-      case "oldest":
-        articles.sort((left, right) => +new Date(left.publishedAt) - +new Date(right.publishedAt));
-        break;
-      case "most-viewed":
-        articles.sort((left, right) => right.viewCount - left.viewCount);
-        break;
-      case "most-liked":
-        articles.sort((left, right) => right.likeCount - left.likeCount);
-        break;
-      case "most-commented":
-        articles.sort((left, right) => right.commentCount - left.commentCount);
-        break;
-      default:
-        articles = rankTrendingArticles(articles);
-    }
-
-    return articles;
+    return getDemoCommunityArticles(query);
   }
 
-  const where: Prisma.ArticleWhereInput = {
-    status: ArticleStatus.PUBLISHED,
-    approvalStatus: ArticleApprovalStatus.APPROVED,
-    visibility: ArticleVisibility.PUBLIC,
-    deletedAt: null,
-    ...(query.category ? { category: { slug: query.category } } : {}),
-    ...(query.tag ? { tags: { some: { tag: { slug: query.tag } } } } : {}),
-    ...(query.query
-      ? {
-          OR: [
-            { title: { contains: query.query, mode: "insensitive" } },
-            { excerpt: { contains: query.query, mode: "insensitive" } },
-            { author: { name: { contains: query.query, mode: "insensitive" } } },
-            { tags: { some: { tag: { name: { contains: query.query, mode: "insensitive" } } } } },
-          ],
-        }
-      : {}),
-  };
+  try {
+    const where: Prisma.ArticleWhereInput = {
+      status: ArticleStatus.PUBLISHED,
+      approvalStatus: ArticleApprovalStatus.APPROVED,
+      visibility: ArticleVisibility.PUBLIC,
+      deletedAt: null,
+      ...(query.category ? { category: { slug: query.category } } : {}),
+      ...(query.tag ? { tags: { some: { tag: { slug: query.tag } } } } : {}),
+      ...(query.query
+        ? {
+            OR: [
+              { title: { contains: query.query, mode: "insensitive" } },
+              { excerpt: { contains: query.query, mode: "insensitive" } },
+              { author: { name: { contains: query.query, mode: "insensitive" } } },
+              { tags: { some: { tag: { name: { contains: query.query, mode: "insensitive" } } } } },
+            ],
+          }
+        : {}),
+    };
 
-  const orderBy =
-    query.sort === "oldest"
-      ? [{ publishedAt: "asc" as const }, { id: "asc" as const }]
-      : query.sort === "most-viewed"
-        ? [{ viewCount: "desc" as const }, { publishedAt: "desc" as const }]
-        : query.sort === "most-liked"
-          ? [{ likeCount: "desc" as const }, { publishedAt: "desc" as const }]
-          : query.sort === "most-commented"
-            ? [{ commentCount: "desc" as const }, { publishedAt: "desc" as const }]
-            : [{ publishedAt: "desc" as const }, { id: "desc" as const }];
+    const orderBy =
+      query.sort === "oldest"
+        ? [{ publishedAt: "asc" as const }, { id: "asc" as const }]
+        : query.sort === "most-viewed"
+          ? [{ viewCount: "desc" as const }, { publishedAt: "desc" as const }]
+          : query.sort === "most-liked"
+            ? [{ likeCount: "desc" as const }, { publishedAt: "desc" as const }]
+            : query.sort === "most-commented"
+              ? [{ commentCount: "desc" as const }, { publishedAt: "desc" as const }]
+              : [{ publishedAt: "desc" as const }, { id: "desc" as const }];
 
-  return prisma.article.findMany({
-    where,
-    orderBy,
-    include: articleListInclude,
-  });
+    return await prisma.article.findMany({
+      where,
+      orderBy,
+      include: articleListInclude,
+    });
+  } catch (error) {
+    console.error("Community article query failed, falling back to demo data.", error);
+    return getDemoCommunityArticles(query);
+  }
 }
 
 export async function getArticleBySlug(slug: string) {
@@ -295,27 +307,32 @@ export async function getArticleBySlug(slug: string) {
     return demoArticles.find((article) => article.slug === slug) ?? null;
   }
 
-  return prisma.article.findFirst({
-    where: {
-      slug,
-      status: ArticleStatus.PUBLISHED,
-      approvalStatus: ArticleApprovalStatus.APPROVED,
-      deletedAt: null,
-      visibility: {
-        not: ArticleVisibility.PRIVATE,
+  try {
+    return await prisma.article.findFirst({
+      where: {
+        slug,
+        status: ArticleStatus.PUBLISHED,
+        approvalStatus: ArticleApprovalStatus.APPROVED,
+        deletedAt: null,
+        visibility: {
+          not: ArticleVisibility.PRIVATE,
+        },
       },
-    },
-    include: {
-      author: true,
-      category: true,
-      tags: { include: { tag: true } },
-      comments: {
-        where: { deletedAt: null, isHidden: false },
-        include: { author: true },
-        orderBy: { createdAt: "asc" },
+      include: {
+        author: true,
+        category: true,
+        tags: { include: { tag: true } },
+        comments: {
+          where: { deletedAt: null, isHidden: false },
+          include: { author: true },
+          orderBy: { createdAt: "asc" },
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error("Article lookup failed, falling back to demo data.", error);
+    return demoArticles.find((article) => article.slug === slug) ?? null;
+  }
 }
 
 export async function listAuthorArticles(username: string) {

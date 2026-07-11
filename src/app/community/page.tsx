@@ -1,7 +1,7 @@
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ArticleCard } from "@/components/articles/article-card";
 import { demoCategories, demoTags } from "@/constants/demo-data";
-import { getAuthSession } from "@/lib/auth-guards";
+import { getOptionalAuthSession } from "@/lib/auth-guards";
 import { getUserArticleInteractionMap } from "@/services/article-engagement-service";
 import { listCommunityArticles } from "@/services/article-service";
 
@@ -12,7 +12,7 @@ export default async function CommunityPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const session = await getAuthSession();
+  const session = await getOptionalAuthSession();
   const params = await searchParams;
   const query = typeof params.query === "string" ? params.query : "";
   const category =

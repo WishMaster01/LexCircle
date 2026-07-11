@@ -10,14 +10,14 @@ import { SectionHeading } from "@/components/layout/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button-link";
 import { demoAuthors, demoCategories } from "@/constants/demo-data";
-import { getAuthSession } from "@/lib/auth-guards";
+import { getOptionalAuthSession } from "@/lib/auth-guards";
 import { getUserArticleInteractionMap } from "@/services/article-engagement-service";
 import { listCommunityArticles } from "@/services/article-service";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const session = await getAuthSession();
+  const session = await getOptionalAuthSession();
   const featuredArticles = (await listCommunityArticles({ sort: "trending" })).slice(0, 3);
   const interactionMap = await getUserArticleInteractionMap(
     featuredArticles.map((article) => article.id),

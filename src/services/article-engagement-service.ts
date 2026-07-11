@@ -66,22 +66,30 @@ export async function getUserArticleInteractionMap(articleIds: string[], userId?
     return map;
   }
 
-  const [likes, bookmarks] = await Promise.all([
-    prisma.like.findMany({
-      where: {
-        userId,
-        articleId: { in: articleIds },
-      },
-      select: { articleId: true },
-    }),
-    prisma.bookmark.findMany({
-      where: {
-        userId,
-        articleId: { in: articleIds },
-      },
-      select: { articleId: true },
-    }),
-  ]);
+  let likes: Array<{ articleId: string }> = [];
+  let bookmarks: Array<{ articleId: string }> = [];
+
+  try {
+    [likes, bookmarks] = await Promise.all([
+      prisma.like.findMany({
+        where: {
+          userId,
+          articleId: { in: articleIds },
+        },
+        select: { articleId: true },
+      }),
+      prisma.bookmark.findMany({
+        where: {
+          userId,
+          articleId: { in: articleIds },
+        },
+        select: { articleId: true },
+      }),
+    ]);
+  } catch (error) {
+    console.error("Article interaction lookup failed, returning defaults.", error);
+    return map;
+  }
 
   for (const like of likes) {
     map.set(like.articleId, {
