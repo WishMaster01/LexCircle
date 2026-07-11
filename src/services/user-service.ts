@@ -17,28 +17,52 @@ export async function getAuthorProfile(username: string) {
     };
   }
 
-  const user = await prisma.user.findUnique({
-    where: { username },
-    include: {
-      articles: {
-        where: { deletedAt: null },
-        include: {
-          category: true,
-          tags: { include: { tag: true } },
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username },
+      include: {
+        articles: {
+          where: { deletedAt: null },
+          include: {
+            author: {
+              select: {
+                name: true,
+              },
+            },
+            category: true,
+            tags: { include: { tag: true } },
+          },
         },
+        followers: true,
+        following: true,
       },
-      followers: true,
-      following: true,
-    },
-  });
+    });
 
-  if (!user) return null;
+    if (!user) return null;
 
-  return {
-    ...user,
-    stats: {
-      totalArticles: user.articles.length,
-      totalViews: user.articles.reduce((sum, article) => sum + article.viewCount, 0),
-    },
-  };
+    return {
+      ...user,
+      articles: user.articles.map((article) => ({
+        ...article,
+        author: article.author ?? { name: user.name },
+      })),
+      stats: {
+        totalArticles: user.articles.length,
+        totalViews: user.articles.reduce((sum, article) => sum + article.viewCount, 0),
+      },
+    };
+  } catch (error) {
+    console.error("Author profile query failed.", error);
+    const author = demoAuthors.find((candidate) => candidate.username === username);
+    if (!author) return null;
+    const articles = demoArticles.filter((article) => article.author.username === username);
+    return {
+      ...author,
+      articles,
+      stats: {
+        totalArticles: articles.length,
+        totalViews: articles.reduce((sum, article) => sum + article.viewCount, 0),
+      },
+    };
+  }
 }
