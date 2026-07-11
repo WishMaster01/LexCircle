@@ -69,17 +69,18 @@ export function AdminMessageCard({
   }
 
   return (
-    <article className="rounded-[1.75rem] border border-border/80 bg-card/80 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <article className="rounded-[1.75rem] border border-border/80 bg-card/80 p-4 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
         <div>
           <p className="text-lg font-semibold">{message.name}</p>
           <p className="mt-1 text-sm text-muted">{message.email}</p>
         </div>
-        <div className="text-right text-sm text-muted">
+        <div className="text-left text-sm text-muted sm:text-right">
           <p>{message.status.replaceAll("_", " ")}</p>
           <p className="mt-1">{formatRelativeDate(message.createdAt)}</p>
         </div>
       </div>
+
       <div className="mt-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-muted">
         <span className="rounded-full border border-border/80 bg-background/70 px-3 py-1">
           {message.topic}
@@ -100,9 +101,10 @@ export function AdminMessageCard({
           </span>
         ) : null}
       </div>
+
       <p className="mt-4 text-sm text-muted">{message.message}</p>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+      <div className="mt-5 grid gap-4 xl:grid-cols-2">
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor={`status-${message.id}`}>
             Status
@@ -140,7 +142,7 @@ export function AdminMessageCard({
           </select>
         </div>
 
-        <div className="space-y-2 lg:col-span-2">
+        <div className="space-y-2 xl:col-span-2">
           <label className="text-sm font-medium" htmlFor={`notes-${message.id}`}>
             Internal notes
           </label>
@@ -155,7 +157,7 @@ export function AdminMessageCard({
         </div>
       </div>
 
-      <div className="mt-5 flex items-center justify-between gap-4">
+      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-muted">
           Last updated {formatRelativeDate(message.updatedAt)}
           {message.handledAt ? ` · handled ${formatRelativeDate(message.handledAt)}` : ""}
@@ -164,7 +166,7 @@ export function AdminMessageCard({
           type="button"
           onClick={() => void onSave()}
           disabled={isSaving}
-          className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
         >
           {isSaving ? <LoaderCircle className="size-4 animate-spin" /> : <Save className="size-4" />}
           Save changes

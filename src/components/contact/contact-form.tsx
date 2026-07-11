@@ -58,9 +58,9 @@ export function ContactForm() {
   }
 
   return (
-    <section className="rounded-[2rem] border border-border/80 bg-card/80 p-8">
+    <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8">
       <div className="max-w-2xl">
-        <h2 className="text-2xl font-semibold tracking-[-0.04em]">Send a message</h2>
+        <h2 className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl">Send a message</h2>
         <p className="mt-2 text-sm text-muted">
           Use the form for support, demos, partnership discussions, or platform questions. Messages
           are validated client-side and server-side before submission.
@@ -68,8 +68,8 @@ export function ContactForm() {
       </div>
 
       {submission ? (
-        <div className="mt-6 rounded-[1.5rem] border border-accent/20 bg-accent/8 p-5">
-          <div className="flex items-start gap-3">
+        <div className="mt-6 rounded-[1.5rem] border border-accent/20 bg-accent/8 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
             {submission.userDelivered ? (
               <MailCheck className="mt-0.5 size-5 text-accent-strong" />
             ) : submission.adminDelivered ? (
@@ -90,7 +90,7 @@ export function ContactForm() {
                   ? `Check ${submission.email} for a confirmation email.`
                   : "If this is urgent, email the appropriate address above while delivery configuration is being finalized."}
               </p>
-              <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em]">
+              <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.16em]">
                 <span className="rounded-full border border-border/80 bg-background/70 px-3 py-1">
                   Provider: {submission.emailProvider}
                 </span>
@@ -208,7 +208,7 @@ export function ContactForm() {
           <button
             type="submit"
             disabled={form.formState.isSubmitting}
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
           >
             {form.formState.isSubmitting ? (
               <LoaderCircle className="size-4 animate-spin" />

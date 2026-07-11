@@ -19,15 +19,15 @@ export default function Home() {
   const featuredArticles = demoArticles.slice(0, 3);
 
   return (
-    <div className="space-y-20">
-      <section className="grid gap-8 overflow-hidden rounded-[2rem] border border-border/80 bg-card px-6 py-10 shadow-[0_24px_90px_rgba(22,21,20,0.08)] backdrop-blur md:grid-cols-[1.2fr_0.8fr] md:px-10 lg:px-14">
-        <div className="space-y-8">
+    <div className="space-y-12 sm:space-y-16 lg:space-y-20">
+      <section className="grid gap-6 overflow-hidden rounded-[2rem] border border-border/80 bg-card px-4 py-6 shadow-[0_24px_90px_rgba(22,21,20,0.08)] backdrop-blur sm:px-6 sm:py-8 md:grid-cols-[1.2fr_0.8fr] md:px-10 md:py-10 lg:px-14">
+        <div className="space-y-6 sm:space-y-8">
           <Badge>Editorial publishing for teams and independent writers</Badge>
           <div className="space-y-5">
-            <h1 className="max-w-3xl text-5xl font-semibold tracking-[-0.05em] sm:text-6xl">
+            <h1 className="max-w-3xl text-4xl font-semibold tracking-[-0.05em] sm:text-5xl lg:text-6xl">
               Publish with structure, discover with context, and keep your writing history intact.
             </h1>
-            <p className="max-w-2xl text-lg text-muted">
+            <p className="max-w-2xl text-base text-muted sm:text-lg">
               InkSphere combines a modern writing dashboard, public community feed, role-aware
               moderation, and analytics that stay explainable.
             </p>
@@ -47,7 +47,7 @@ export default function Home() {
             <HeroStat icon={BarChart3} label="Monthly reads" value="1.1M" />
           </div>
         </div>
-        <div className="grid gap-4 rounded-[1.75rem] border border-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.6),rgba(255,255,255,0.1))] p-4 dark:bg-[linear-gradient(180deg,rgba(18,23,25,0.92),rgba(18,23,25,0.7))]">
+        <div className="grid gap-4 rounded-[1.75rem] border border-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.6),rgba(255,255,255,0.1))] p-3 sm:p-4 dark:bg-[linear-gradient(180deg,rgba(18,23,25,0.92),rgba(18,23,25,0.7))]">
           <div className="rounded-[1.5rem] border border-border/80 bg-background/70 p-5">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted">Trending now</span>
@@ -89,20 +89,20 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="space-y-8">
+      <section className="space-y-6 sm:space-y-8">
         <SectionHeading
           eyebrow="Featured articles"
           title="Stories with strong signal, not a noisy firehose."
           description="The community feed blends fresh writing, strong engagement, and recent momentum."
         />
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {featuredArticles.map((article) => (
             <ArticleCard key={article.id} article={article} />
           ))}
         </div>
       </section>
 
-      <section className="grid gap-6 rounded-[2rem] border border-border/80 bg-card/80 p-8 lg:grid-cols-[0.75fr_1.25fr]">
+      <section className="grid gap-6 rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8 lg:grid-cols-[0.75fr_1.25fr]">
         <div className="space-y-3">
           <SectionHeading
             eyebrow="Why writers switch"
@@ -131,7 +131,7 @@ export default function Home() {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="space-y-6 rounded-[2rem] border border-border/80 bg-card/80 p-8">
+        <div className="space-y-6 rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8">
           <SectionHeading
             eyebrow="Popular categories"
             title="Editorial lanes for every kind of technical writing."
@@ -144,7 +144,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-        <div className="space-y-6 rounded-[2rem] border border-border/80 bg-card/80 p-8">
+        <div className="space-y-6 rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8">
           <SectionHeading eyebrow="Top authors" title="Writers building loyal followings." />
           <div className="grid gap-4 sm:grid-cols-2">
             {demoAuthors.slice(0, 4).map((author) => (

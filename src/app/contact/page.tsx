@@ -4,7 +4,7 @@ import { ContactForm } from "@/components/contact/contact-form";
 export default function ContactPage() {
   return (
     <div className="space-y-8">
-      <div className="rounded-[2rem] border border-border/80 bg-card/80 p-8">
+      <div className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8">
         <SectionHeading
           eyebrow="Contact"
           title="Platform support, editorial partnerships, and product conversations"
@@ -13,8 +13,8 @@ export default function ContactPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-        <section className="rounded-[2rem] border border-border/80 bg-card/80 p-8">
-          <h2 className="text-2xl font-semibold tracking-[-0.04em]">Direct channels</h2>
+        <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8">
+          <h2 className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl">Direct channels</h2>
           <div className="mt-5 space-y-4 text-sm text-muted">
             <div className="rounded-2xl border border-border/80 bg-background/70 p-4">
               <p className="font-semibold text-foreground">General support</p>
@@ -34,8 +34,8 @@ export default function ContactPage() {
           </div>
         </section>
 
-        <section className="rounded-[2rem] border border-border/80 bg-card/80 p-8">
-          <h2 className="text-2xl font-semibold tracking-[-0.04em]">Response expectations</h2>
+        <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8">
+          <h2 className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl">Response expectations</h2>
           <div className="mt-5 space-y-4 text-sm text-muted">
             <p>
               We aim to respond to general support requests within one business day. Security and
@@ -56,8 +56,8 @@ export default function ContactPage() {
 
       <ContactForm />
 
-      <section className="rounded-[2rem] border border-border/80 bg-card/80 p-8">
-        <h2 className="text-2xl font-semibold tracking-[-0.04em]">Before you contact us</h2>
+      <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8">
+        <h2 className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl">Before you contact us</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {[
             {
