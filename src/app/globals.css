@@ -1,26 +1,99 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-geist-sans: "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-geist-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --background: #fcf7ef;
+  --foreground: #161514;
+  --card: rgba(255, 255, 255, 0.84);
+  --border: rgba(22, 21, 20, 0.1);
+  --muted: #645d57;
+  --accent: #d85f38;
+  --accent-strong: #9f3416;
+  --secondary: #20403d;
+  --ring: rgba(216, 95, 56, 0.35);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-secondary: var(--secondary);
+  --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-theme="dark"] {
+  --background: #0f1416;
+  --foreground: #eef0ea;
+  --card: rgba(18, 23, 25, 0.86);
+  --border: rgba(238, 240, 234, 0.08);
+  --muted: #a6b1ab;
+  --accent: #f28b5b;
+  --accent-strong: #ffb08b;
+  --secondary: #9bc4b8;
+  --ring: rgba(242, 139, 91, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), sans-serif;
+  background-image:
+    radial-gradient(circle at top left, rgba(216, 95, 56, 0.16), transparent 24%),
+    radial-gradient(circle at top right, rgba(32, 64, 61, 0.14), transparent 28%);
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+::selection {
+  background: rgba(216, 95, 56, 0.25);
+}
+
+.prose-article h1,
+.prose-article h2,
+.prose-article h3,
+.prose-article h4 {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.prose-article p {
+  color: color-mix(in srgb, var(--foreground) 80%, transparent);
+  line-height: 1.8;
+}
+
+.prose-article ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.prose-article blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  color: var(--muted);
 }
