@@ -28,7 +28,10 @@ export default function RegisterPage() {
       body: JSON.stringify(values),
     });
 
-    const result = (await response.json()) as { success: boolean; message: string };
+    const result = (await response.json()) as {
+      success: boolean;
+      message: string;
+    };
     if (!result.success) {
       toast.error(result.message);
       return;
@@ -41,19 +44,22 @@ export default function RegisterPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 sm:space-y-8">
       <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-        <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8">
+        <section className="rounded-4xl border border-border/80 bg-card/80 p-5 sm:p-8">
           <SectionHeading
             eyebrow="Register"
-            title="Create your author account"
-            description="Set up a profile for writing, publishing, bookmarking, and managing your editorial workspace."
+            title="Create your law student author account"
+            description="Set up a profile for legal writing, article submissions, bookmarking, and community participation."
           />
           <div className="mt-6 grid gap-3">
             {[
-              "Claim a public author profile and username.",
-              "Start drafts immediately after registration.",
-              "Keep article history and workflow state tied to your account.",
+              "Claim a public legal author profile and username.",
+              "Start case notes, blogs, and research drafts immediately after registration.",
+              "Keep submission history and approval state tied to your account.",
             ].map((item) => (
-              <div key={item} className="rounded-[1.5rem] border border-border/80 bg-background/70 p-4 text-sm text-muted">
+              <div
+                key={item}
+                className="rounded-3xl border border-border/80 bg-background/70 p-4 text-sm text-muted"
+              >
                 {item}
               </div>
             ))}
@@ -62,14 +68,39 @@ export default function RegisterPage() {
 
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-4 rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8"
+          className="space-y-4 rounded-4xl border border-border/80 bg-card/80 p-5 sm:p-8"
         >
-          <input {...form.register("name")} placeholder="Name" className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring" />
-          <input {...form.register("username")} placeholder="Username" className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring" />
-          <input {...form.register("email")} placeholder="Email" className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring" />
-          <input {...form.register("password")} type="password" placeholder="Password" className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring" />
-          <input {...form.register("confirmPassword")} type="password" placeholder="Confirm password" className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring" />
-          <button type="submit" className="w-full rounded-full bg-accent px-4 py-3 text-sm font-medium text-white">
+          <input
+            {...form.register("name")}
+            placeholder="Name"
+            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+          />
+          <input
+            {...form.register("username")}
+            placeholder="Username"
+            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+          />
+          <input
+            {...form.register("email")}
+            placeholder="Email"
+            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+          />
+          <input
+            {...form.register("password")}
+            type="password"
+            placeholder="Password"
+            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+          />
+          <input
+            {...form.register("confirmPassword")}
+            type="password"
+            placeholder="Confirm password"
+            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+          />
+          <button
+            type="submit"
+            className="w-full rounded-full bg-accent px-4 py-3 text-sm font-medium text-white"
+          >
             Create account
           </button>
         </form>

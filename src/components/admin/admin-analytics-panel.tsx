@@ -28,44 +28,51 @@ const trafficTrend = [
 ];
 
 const contentMix = [
-  { name: "Published", value: 68, color: "#d85f38" },
-  { name: "Draft", value: 17, color: "#20403d" },
-  { name: "Archived", value: 9, color: "#e2b261" },
-  { name: "Scheduled", value: 6, color: "#77a8a0" },
+  { name: "Approved", value: 48, color: "#d85f38" },
+  { name: "Pending review", value: 24, color: "#20403d" },
+  { name: "Needs changes", value: 18, color: "#e2b261" },
+  { name: "Draft only", value: 10, color: "#77a8a0" },
 ];
 
 const opsBreakdown = [
-  { name: "New users", value: 420 },
+  { name: "New students", value: 420 },
   { name: "Active authors", value: 186 },
-  { name: "Moderation actions", value: 64 },
+  { name: "Article reviews", value: 64 },
   { name: "Resolved reports", value: 51 },
 ];
 
 const moderationFlow = [
   { value: 96, name: "Submitted" },
   { value: 72, name: "Reviewed" },
-  { value: 51, name: "Resolved" },
-  { value: 18, name: "Escalated" },
+  { value: 51, name: "Approved" },
+  { value: 18, name: "Returned" },
 ];
 
 export function AdminAnalyticsPanel() {
   return (
     <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-      <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-6">
+      <section className="rounded-4xl border border-border/80 bg-card/80 p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-semibold tracking-[-0.04em]">Platform traffic and author growth</h2>
+            <h2 className="text-2xl font-semibold tracking-[-0.04em]">
+              Community reading and student growth
+            </h2>
             <p className="mt-2 text-sm text-muted">
-              Multi-month view of readership, signups, and moderation pressure.
+              Multi-month view of legal readership, signups, and moderation pressure.
             </p>
           </div>
         </div>
         <div className="mt-4 grid gap-2 sm:hidden">
           {trafficTrend.map((item) => (
-            <div key={item.month} className="rounded-2xl bg-background/70 px-4 py-3 text-sm">
+            <div
+              key={item.month}
+              className="rounded-2xl bg-background/70 px-4 py-3 text-sm"
+            >
               <div className="flex items-center justify-between">
                 <span className="font-medium">{item.month}</span>
-                <span className="text-muted">{item.reads.toLocaleString()} reads</span>
+                <span className="text-muted">
+                  {item.reads.toLocaleString()} reads
+                </span>
               </div>
               <div className="mt-1 flex items-center justify-between text-xs text-muted">
                 <span>{item.signups} signups</span>
@@ -87,18 +94,30 @@ export function AdminAnalyticsPanel() {
               <XAxis dataKey="month" axisLine={false} tickLine={false} />
               <YAxis axisLine={false} tickLine={false} />
               <Tooltip />
-              <Area type="monotone" dataKey="reads" stroke="#d85f38" fill="url(#readsGradient)" />
-              <Area type="monotone" dataKey="signups" stroke="#20403d" fillOpacity={0} />
+              <Area
+                type="monotone"
+                dataKey="reads"
+                stroke="#d85f38"
+                fill="url(#readsGradient)"
+              />
+              <Area
+                type="monotone"
+                dataKey="signups"
+                stroke="#20403d"
+                fillOpacity={0}
+              />
             </AreaChart>
           </ResponsiveContainer>
         </div>
       </section>
 
       <section className="grid gap-6">
-        <div className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-6">
-          <h2 className="text-2xl font-semibold tracking-[-0.04em]">Content distribution</h2>
+        <div className="rounded-4xl border border-border/80 bg-card/80 p-5 sm:p-6">
+          <h2 className="text-2xl font-semibold tracking-[-0.04em]">
+            Content distribution
+          </h2>
           <p className="mt-2 text-sm text-muted">
-            Publication-state split across the current editorial pipeline.
+            Approval-state split across the current legal writing pipeline.
           </p>
           <div className="mt-6 h-64 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -121,9 +140,15 @@ export function AdminAnalyticsPanel() {
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
             {contentMix.map((item) => (
-              <div key={item.name} className="flex items-center justify-between rounded-2xl bg-background/70 px-4 py-3 text-sm">
+              <div
+                key={item.name}
+                className="flex items-center justify-between rounded-2xl bg-background/70 px-4 py-3 text-sm"
+              >
                 <span className="flex items-center gap-2">
-                  <span className="size-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span
+                    className="size-2.5 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
                   {item.name}
                 </span>
                 <span className="font-medium">{item.value}%</span>
@@ -133,14 +158,19 @@ export function AdminAnalyticsPanel() {
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-6">
-        <h2 className="text-2xl font-semibold tracking-[-0.04em]">Operational activity</h2>
+      <section className="rounded-4xl border border-border/80 bg-card/80 p-5 sm:p-6">
+        <h2 className="text-2xl font-semibold tracking-[-0.04em]">
+          Operational activity
+        </h2>
         <p className="mt-2 text-sm text-muted">
-          Team-level volume across acquisition, publishing, and moderation.
+          Admin-level volume across student growth, review, and moderation.
         </p>
         <div className="mt-4 grid gap-2 sm:hidden">
           {opsBreakdown.map((item) => (
-            <div key={item.name} className="rounded-2xl bg-background/70 px-4 py-3 text-sm">
+            <div
+              key={item.name}
+              className="rounded-2xl bg-background/70 px-4 py-3 text-sm"
+            >
               <div className="flex items-center justify-between gap-3">
                 <span className="font-medium">{item.name}</span>
                 <span className="text-muted">{item.value}</span>
@@ -169,14 +199,19 @@ export function AdminAnalyticsPanel() {
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-6">
-        <h2 className="text-2xl font-semibold tracking-[-0.04em]">Moderation flow</h2>
+      <section className="rounded-4xl border border-border/80 bg-card/80 p-5 sm:p-6">
+        <h2 className="text-2xl font-semibold tracking-[-0.04em]">
+          Submission flow
+        </h2>
         <p className="mt-2 text-sm text-muted">
-          Funnel view of how reported content moves through the review system.
+          Funnel view of how student legal writing moves through admin review.
         </p>
         <div className="mt-4 grid gap-2 sm:hidden">
           {moderationFlow.map((item) => (
-            <div key={item.name} className="rounded-2xl bg-background/70 px-4 py-3 text-sm">
+            <div
+              key={item.name}
+              className="rounded-2xl bg-background/70 px-4 py-3 text-sm"
+            >
               <div className="flex items-center justify-between gap-3">
                 <span className="font-medium">{item.name}</span>
                 <span className="text-muted">{item.value}</span>
@@ -188,8 +223,18 @@ export function AdminAnalyticsPanel() {
           <ResponsiveContainer width="100%" height="100%">
             <FunnelChart>
               <Tooltip />
-              <Funnel dataKey="value" data={moderationFlow} isAnimationActive fill="#d85f38">
-                <LabelList position="right" fill="var(--foreground)" stroke="none" dataKey="name" />
+              <Funnel
+                dataKey="value"
+                data={moderationFlow}
+                isAnimationActive
+                fill="#d85f38"
+              >
+                <LabelList
+                  position="right"
+                  fill="var(--foreground)"
+                  stroke="none"
+                  dataKey="name"
+                />
               </Funnel>
             </FunnelChart>
           </ResponsiveContainer>

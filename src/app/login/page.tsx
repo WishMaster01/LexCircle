@@ -18,8 +18,8 @@ export default function LoginPage() {
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "admin@inksphere.dev",
-      password: "Password123!",
+      email: "",
+      password: "",
     },
   });
 
@@ -42,19 +42,22 @@ export default function LoginPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 sm:space-y-8">
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8">
+        <section className="rounded-4xl border border-border/80 bg-card/80 p-5 sm:p-8">
           <SectionHeading
             eyebrow="Login"
-            title="Sign in to your writing workspace"
-            description="Access your drafts, revision history, bookmarks, and editorial tools from one place."
+            title="Sign in to your legal writing workspace"
+            description="Access your drafts, case notes, bookmarks, approval history, and community activity from one place."
           />
           <div className="mt-6 grid gap-3">
             {[
-              "Continue editing drafts across devices.",
-              "Review history and publishing checkpoints quickly.",
-              "Use the same account for author and dashboard workflows.",
+              "Continue editing legal drafts across devices.",
+              "Review approval history and submission checkpoints quickly.",
+              "Use the same account for writing, reading, saving, and discussion.",
             ].map((item) => (
-              <div key={item} className="rounded-[1.5rem] border border-border/80 bg-background/70 p-4 text-sm text-muted">
+              <div
+                key={item}
+                className="rounded-3xl border border-border/80 bg-background/70 p-4 text-sm text-muted"
+              >
                 {item}
               </div>
             ))}
@@ -63,10 +66,11 @@ export default function LoginPage() {
 
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-4 rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8"
+          className="space-y-4 rounded-4xl border border-border/80 bg-card/80 p-5 sm:p-8"
         >
-          <div className="rounded-[1.5rem] border border-border/80 bg-background/70 p-4 text-sm text-muted">
-            Demo credentials are prefilled so you can test the signed-in flow immediately.
+          <div className="rounded-3xl border border-border/80 bg-background/70 p-4 text-sm text-muted">
+            Sign in with your registered student account or the admin
+            credentials configured in `.env`.
           </div>
           <input
             {...form.register("email")}
@@ -79,7 +83,10 @@ export default function LoginPage() {
             placeholder="Password"
             className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
           />
-          <button type="submit" className="w-full rounded-full bg-accent px-4 py-3 text-sm font-medium text-white">
+          <button
+            type="submit"
+            className="w-full rounded-full bg-accent px-4 py-3 text-sm font-medium text-white"
+          >
             Sign in
           </button>
         </form>

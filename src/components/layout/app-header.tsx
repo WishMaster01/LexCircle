@@ -27,8 +27,11 @@ export function AppHeader() {
     () => [
       { href: "/dashboard/profile", label: "Profile", icon: UserCircle2 },
       { href: "/dashboard/history", label: "My History", icon: History },
+      ...(user?.isPortalAdmin
+        ? [{ href: "/admin", label: "Admin Center", icon: UserCircle2 }]
+        : []),
     ],
-    [],
+    [user?.isPortalAdmin],
   );
   const sharedMobileLinks = useMemo(
     () => [
@@ -38,13 +41,16 @@ export function AppHeader() {
             { href: "/dashboard/profile", label: "Profile" },
             { href: "/dashboard/history", label: "My History" },
             { href: "/dashboard/articles/new", label: "Write" },
+            ...(user?.isPortalAdmin
+              ? [{ href: "/admin", label: "Admin Center" }]
+              : []),
           ]
         : [
             { href: "/login", label: "Login" },
             { href: "/register", label: "Register" },
           ]),
     ],
-    [status],
+    [status, user?.isPortalAdmin],
   );
 
   return (
@@ -53,11 +59,15 @@ export function AppHeader() {
         <div className="flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-full bg-accent text-sm font-semibold text-white sm:size-11">
-              IS
+              LC
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold tracking-[-0.03em]">InkSphere</p>
-              <p className="text-xs text-muted">Publish with signal</p>
+              <p className="text-sm font-semibold tracking-[-0.03em]">
+                LexCircle
+              </p>
+              <p className="text-xs text-muted">
+                Where Future Lawyers Write, Learn, and Lead.
+              </p>
             </div>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
@@ -77,7 +87,9 @@ export function AppHeader() {
             <button
               type="button"
               aria-label="Toggle theme"
-              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              onClick={() =>
+                setTheme(resolvedTheme === "dark" ? "light" : "dark")
+              }
               className="flex size-10 items-center justify-center rounded-full border border-border/80 bg-background/80 text-muted hover:text-foreground"
             >
               {resolvedTheme === "dark" ? (
@@ -98,14 +110,16 @@ export function AppHeader() {
                   <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-border/80 bg-background/80 px-2 py-2 text-sm text-foreground hover:bg-card">
                     <Avatar name={user?.name ?? "User"} image={user?.image} />
                     <div className="hidden text-left lg:block">
-                      <p className="max-w-32 truncate font-medium">{user?.name ?? "User"}</p>
+                      <p className="max-w-32 truncate font-medium">
+                        {user?.name ?? "User"}
+                      </p>
                       <p className="max-w-32 truncate text-xs text-muted">
                         @{user?.username ?? "account"}
                       </p>
                     </div>
                     <ChevronDown className="hidden size-4 text-muted transition-transform group-open:rotate-180 lg:block" />
                   </summary>
-                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 min-w-64 rounded-[1.5rem] border border-border/80 bg-card/95 p-3 shadow-[0_20px_70px_rgba(22,21,20,0.14)] backdrop-blur">
+                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 min-w-64 rounded-3xl border border-border/80 bg-card/95 p-3 shadow-[0_20px_70px_rgba(22,21,20,0.14)] backdrop-blur">
                     <div className="rounded-2xl border border-border/80 bg-background/70 p-4">
                       <p className="font-semibold">{user?.name ?? "User"}</p>
                       <p className="mt-1 text-sm text-muted">{user?.email}</p>
@@ -158,12 +172,14 @@ export function AppHeader() {
               <summary className="flex size-10 cursor-pointer list-none items-center justify-center rounded-full border border-border/80 bg-background/80">
                 <Menu className="size-4" />
               </summary>
-              <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(88vw,22rem)] rounded-[1.5rem] border border-border/80 bg-card/95 p-3 shadow-[0_20px_70px_rgba(22,21,20,0.14)] backdrop-blur">
+              <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(88vw,22rem)] rounded-3xl border border-border/80 bg-card/95 p-3 shadow-[0_20px_70px_rgba(22,21,20,0.14)] backdrop-blur">
                 {status === "authenticated" && user ? (
                   <div className="mb-3 rounded-2xl border border-border/80 bg-background/70 p-4">
                     <p className="font-semibold">{user.name}</p>
                     <p className="mt-1 text-sm text-muted">{user.email}</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted">{user.role}</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted">
+                      {user.role}
+                    </p>
                   </div>
                 ) : null}
                 <div className="space-y-1">

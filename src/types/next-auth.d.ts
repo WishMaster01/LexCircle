@@ -8,6 +8,7 @@ declare module "next-auth" {
       username?: string | null;
       role: UserRole;
       isSuspended?: boolean;
+      isPortalAdmin?: boolean;
     };
   }
 
@@ -15,5 +16,15 @@ declare module "next-auth" {
     username?: string | null;
     role: UserRole;
     isSuspended?: boolean;
+    isPortalAdmin?: boolean;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    username?: string | null;
+    role?: UserRole;
+    isSuspended?: boolean;
+    isPortalAdmin?: boolean;
   }
 }

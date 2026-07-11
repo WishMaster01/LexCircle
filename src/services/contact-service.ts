@@ -1,4 +1,8 @@
-import { ContactMessageStatus, ContactTopic, type Prisma } from "@prisma/client";
+import {
+  ContactMessageStatus,
+  ContactTopic,
+  type Prisma,
+} from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import type { ContactFormValues } from "@/lib/validations/contact";
@@ -17,14 +21,12 @@ type DemoContactMessage = {
   handledAt: string | null;
   internalNotes: string | null;
   handledById: string | null;
-  handledBy:
-    | {
-        id: string;
-        name: string;
-        username: string;
-        role: "ADMIN" | "MODERATOR";
-      }
-    | null;
+  handledBy: {
+    id: string;
+    name: string;
+    username: string;
+    role: "ADMIN" | "MODERATOR";
+  } | null;
 };
 
 type DemoHandler = {
@@ -37,7 +39,7 @@ type DemoHandler = {
 const demoHandlers: DemoHandler[] = [
   {
     id: "admin-1",
-    name: "Admin User",
+    name: "LexCircle Admin",
     username: "admin",
     role: "ADMIN",
   },
@@ -52,12 +54,13 @@ const demoHandlers: DemoHandler[] = [
 const demoMessages: DemoContactMessage[] = [
   {
     id: "contact-1",
-    name: "Ava Jordan",
-    email: "ava@northnote.dev",
+    name: "Aarav Mehta",
+    email: "aarav@campuslawreview.org",
     topic: ContactTopic.DEMO,
-    company: "NorthNote",
+    company: "Campus Law Review",
     teamSize: "8 editors",
-    message: "We want a demo for migrating an internal editorial workflow onto InkSphere.",
+    message:
+      "We want a demo for running our student law journal submissions and review workflow on LexCircle.",
     status: ContactMessageStatus.IN_PROGRESS,
     createdAt: "2026-07-10T10:00:00.000Z",
     updatedAt: "2026-07-10T12:00:00.000Z",
@@ -72,8 +75,9 @@ const demoMessages: DemoContactMessage[] = [
     email: "riya@example.com",
     topic: ContactTopic.SUPPORT,
     company: null,
-    teamSize: "Solo writer",
-    message: "I need help understanding why my draft is not showing up in the dashboard list.",
+    teamSize: "Solo student",
+    message:
+      "I need help understanding why my legal article draft is not showing up in the approved dashboard list.",
     status: ContactMessageStatus.PENDING,
     createdAt: "2026-07-11T08:30:00.000Z",
     updatedAt: "2026-07-11T08:30:00.000Z",
@@ -166,9 +170,15 @@ export async function getContactMessageSummary() {
   if (!isDatabaseConfigured()) {
     return {
       total: demoMessages.length,
-      pending: demoMessages.filter((item) => item.status === ContactMessageStatus.PENDING).length,
-      inProgress: demoMessages.filter((item) => item.status === ContactMessageStatus.IN_PROGRESS).length,
-      resolved: demoMessages.filter((item) => item.status === ContactMessageStatus.RESOLVED).length,
+      pending: demoMessages.filter(
+        (item) => item.status === ContactMessageStatus.PENDING,
+      ).length,
+      inProgress: demoMessages.filter(
+        (item) => item.status === ContactMessageStatus.IN_PROGRESS,
+      ).length,
+      resolved: demoMessages.filter(
+        (item) => item.status === ContactMessageStatus.RESOLVED,
+      ).length,
       recent: demoMessages.slice(0, 4),
     };
   }
@@ -197,7 +207,10 @@ export async function getContactMessageSummary() {
   };
 }
 
-export async function updateContactMessageStatus(id: string, status: ContactMessageStatus) {
+export async function updateContactMessageStatus(
+  id: string,
+  status: ContactMessageStatus,
+) {
   if (!isDatabaseConfigured()) {
     const message = demoMessages.find((item) => item.id === id);
     return {
@@ -205,9 +218,10 @@ export async function updateContactMessageStatus(id: string, status: ContactMess
       status,
       updatedAt: new Date().toISOString(),
       handledAt:
-        status === ContactMessageStatus.RESOLVED || status === ContactMessageStatus.ARCHIVED
+        status === ContactMessageStatus.RESOLVED ||
+        status === ContactMessageStatus.ARCHIVED
           ? new Date().toISOString()
-          : message?.handledAt ?? null,
+          : (message?.handledAt ?? null),
     };
   }
 
@@ -216,7 +230,8 @@ export async function updateContactMessageStatus(id: string, status: ContactMess
     data: {
       status,
       handledAt:
-        status === ContactMessageStatus.RESOLVED || status === ContactMessageStatus.ARCHIVED
+        status === ContactMessageStatus.RESOLVED ||
+        status === ContactMessageStatus.ARCHIVED
           ? new Date()
           : null,
     },
@@ -233,7 +248,8 @@ export async function updateContactMessage(
 ) {
   if (!isDatabaseConfigured()) {
     const existing = demoMessages.find((item) => item.id === id);
-    const handler = demoHandlers.find((item) => item.id === input.handledById) ?? null;
+    const handler =
+      demoHandlers.find((item) => item.id === input.handledById) ?? null;
     return {
       id,
       name: existing?.name ?? "Unknown",
@@ -247,9 +263,10 @@ export async function updateContactMessage(
       handledById: input.handledById ?? null,
       handledBy: handler,
       handledAt:
-        input.status === ContactMessageStatus.RESOLVED || input.status === ContactMessageStatus.ARCHIVED
+        input.status === ContactMessageStatus.RESOLVED ||
+        input.status === ContactMessageStatus.ARCHIVED
           ? new Date().toISOString()
-          : existing?.handledAt ?? null,
+          : (existing?.handledAt ?? null),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -262,7 +279,8 @@ export async function updateContactMessage(
       internalNotes: input.internalNotes ?? null,
       handledById: input.handledById || null,
       handledAt:
-        input.status === ContactMessageStatus.RESOLVED || input.status === ContactMessageStatus.ARCHIVED
+        input.status === ContactMessageStatus.RESOLVED ||
+        input.status === ContactMessageStatus.ARCHIVED
           ? new Date()
           : null,
     },

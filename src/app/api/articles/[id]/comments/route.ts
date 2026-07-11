@@ -1,24 +1,42 @@
-import { successResponse } from "@/lib/api-response";
+import { errorResponse, successResponse } from "@/lib/api-response";
+import { requireUserRouteSession } from "@/lib/auth-guards";
+import { createArticleComment, listArticleComments } from "@/services/article-engagement-service";
 import { commentSchema } from "@/lib/validations/comment";
 
-const comments = [
-  { id: "c1", content: "Strong model design.", author: "Jordan Lee" },
-  { id: "c2", content: "The history checkpoints are useful.", author: "Sana Patel" },
-];
-
-export async function GET() {
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const comments = await listArticleComments(id);
   return successResponse("Comments fetched successfully", comments);
 }
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const auth = await requireUserRouteSession();
+  if ("response" in auth) {
+    return auth.response;
+  }
+
+  const { id } = await params;
   const body = await request.json();
   const parsed = commentSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json(
-      { success: false, message: "Validation failed", errors: parsed.error.flatten().fieldErrors },
-      { status: 422 },
-    );
+    return errorResponse("Validation failed", 422, parsed.error.flatten().fieldErrors);
   }
 
-  return successResponse("Comment created successfully", { id: `comment-${Date.now()}`, ...parsed.data }, 201);
+  try {
+    const comment = await createArticleComment({
+      articleId: id,
+      userId: auth.session.user.id,
+      content: parsed.data.content,
+      parentId: parsed.data.parentId,
+    });
+    return successResponse("Comment created successfully", comment, 201);
+  } catch (error) {
+    return errorResponse(error instanceof Error ? error.message : "Unable to create comment", 400);
+  }
 }

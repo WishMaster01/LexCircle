@@ -1,6 +1,17 @@
 import bcrypt from "bcryptjs";
-import { PrismaClient, ArticleStatus, ArticleVisibility, ReportReason, UserRole } from "@prisma/client";
-import { demoArticles, demoAuthors, demoCategories, demoTags } from "../src/constants/demo-data";
+import {
+  PrismaClient,
+  ArticleStatus,
+  ArticleVisibility,
+  ReportReason,
+  UserRole,
+} from "@prisma/client";
+import {
+  demoArticles,
+  demoAuthors,
+  demoCategories,
+  demoTags,
+} from "../src/constants/demo-data";
 
 const prisma = new PrismaClient();
 
@@ -8,12 +19,12 @@ async function main() {
   const passwordHash = await bcrypt.hash("Password123!", 12);
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@inksphere.dev" },
+    where: { email: "admin@LexCircle.dev" },
     update: {},
     create: {
       name: "Admin User",
       username: "admin",
-      email: "admin@inksphere.dev",
+      email: "admin@LexCircle.dev",
       passwordHash,
       role: UserRole.ADMIN,
       bio: "Platform administrator",
@@ -23,12 +34,12 @@ async function main() {
   const authors = await Promise.all(
     demoAuthors.map((author, index) =>
       prisma.user.upsert({
-        where: { email: `${author.username}@inksphere.dev` },
+        where: { email: `${author.username}@LexCircle.dev` },
         update: {},
         create: {
           name: author.name,
           username: author.username,
-          email: `${author.username}@inksphere.dev`,
+          email: `${author.username}@LexCircle.dev`,
           passwordHash,
           bio: author.bio,
           role: index === 0 ? UserRole.MODERATOR : UserRole.USER,
@@ -41,7 +52,9 @@ async function main() {
   for (const category of demoCategories) {
     const record = await prisma.category.upsert({
       where: { slug: category.slug },
-      update: { description: `${category.name} articles and community insights.` },
+      update: {
+        description: `${category.name} articles and community insights.`,
+      },
       create: {
         name: category.name,
         slug: category.slug,
@@ -62,7 +75,10 @@ async function main() {
   }
 
   for (const article of demoArticles) {
-    const author = authors.find((candidate) => candidate.username === article.author.username) ?? admin;
+    const author =
+      authors.find(
+        (candidate) => candidate.username === article.author.username,
+      ) ?? admin;
     const created = await prisma.article.upsert({
       where: { slug: article.slug },
       update: {},
@@ -115,12 +131,14 @@ async function main() {
       {
         articleId: sampleArticle.id,
         authorId: sampleUser.id,
-        content: "This structure for state transitions is exactly the right place to start.",
+        content:
+          "This structure for state transitions is exactly the right place to start.",
       },
       {
         articleId: sampleArticle.id,
         authorId: admin.id,
-        content: "Analytics and revision history usually get postponed. Building them early changes the product quality.",
+        content:
+          "Analytics and revision history usually get postponed. Building them early changes the product quality.",
       },
     ],
     skipDuplicates: true,

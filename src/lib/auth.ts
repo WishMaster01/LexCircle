@@ -6,7 +6,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { env, isGoogleAuthConfigured } from "@/lib/env";
+import { env, isAdminCredentialsConfigured, isGoogleAuthConfigured } from "@/lib/env";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -28,8 +28,27 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        const normalizedEmail = credentials.email.toLowerCase();
+
+        if (
+          isAdminCredentialsConfigured() &&
+          normalizedEmail === env.ADMIN_EMAIL?.toLowerCase() &&
+          credentials.password === env.ADMIN_PASSWORD
+        ) {
+          return {
+            id: "env-admin",
+            name: env.ADMIN_NAME ?? "LexCircle Admin",
+            email: env.ADMIN_EMAIL?.toLowerCase(),
+            image: null,
+            username: "admin",
+            role: UserRole.ADMIN,
+            isSuspended: false,
+            isPortalAdmin: true,
+          };
+        }
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase() },
+          where: { email: normalizedEmail },
         });
 
         if (!user?.passwordHash) {
@@ -49,6 +68,7 @@ export const authOptions: NextAuthOptions = {
           username: user.username,
           role: user.role,
           isSuspended: user.isSuspended,
+          isPortalAdmin: false,
         };
       },
     }),
@@ -67,6 +87,7 @@ export const authOptions: NextAuthOptions = {
         token.username = (user as { username?: string | null }).username ?? null;
         token.role = (user as { role?: UserRole }).role ?? UserRole.USER;
         token.isSuspended = (user as { isSuspended?: boolean }).isSuspended ?? false;
+        token.isPortalAdmin = (user as { isPortalAdmin?: boolean }).isPortalAdmin ?? false;
       }
 
       return token;
@@ -77,6 +98,7 @@ export const authOptions: NextAuthOptions = {
         session.user.username = (token.username as string | null | undefined) ?? null;
         session.user.role = (token.role as UserRole | undefined) ?? UserRole.USER;
         session.user.isSuspended = (token.isSuspended as boolean | undefined) ?? false;
+        session.user.isPortalAdmin = (token.isPortalAdmin as boolean | undefined) ?? false;
       }
 
       return session;

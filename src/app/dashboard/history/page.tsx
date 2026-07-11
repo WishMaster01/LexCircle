@@ -1,43 +1,98 @@
+import { Badge } from "@/components/ui/badge";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { requireUserPageSession } from "@/lib/auth-guards";
+import { formatRelativeDate } from "@/lib/utils";
+import { listUserHistory } from "@/services/article-service";
 
-const history = [
-  { id: "h1", action: "Article published", date: "2026-07-10 09:15", summary: "Published from draft" },
-  { id: "h2", action: "Title updated", date: "2026-07-09 14:22", summary: "Refined headline for clarity" },
-  { id: "h3", action: "Draft autosaved", date: "2026-07-09 14:18", summary: "Checkpoint revision stored" },
-];
+function getHistoryMessage(
+  approvalStatus: string,
+  reviewFeedback?: string | null,
+) {
+  if (approvalStatus === "PENDING") {
+    return "Waiting for admin approval before this article moves into your approved dashboard list.";
+  }
 
-export default function HistoryPage() {
+  if (approvalStatus === "REJECTED") {
+    return reviewFeedback || "Admin requested revisions before approval.";
+  }
+
+  return "Approved by admin and available inside your article workspace.";
+}
+
+export default async function HistoryPage() {
+  const session = await requireUserPageSession();
+  const history = await listUserHistory(session.user.id);
+
   return (
     <div className="space-y-8">
       <SectionHeading
         eyebrow="History"
         title="Lifecycle events and revision checkpoints"
-        description="Track important article changes without flooding the timeline with insignificant autosaves."
+        description="Track approval decisions, resubmission states, and major editorial checkpoints without flooding the timeline."
       />
       <div className="rounded-[1.75rem] border border-border/80 bg-card/80 p-4 sm:p-5">
         <div className="grid gap-4 md:grid-cols-3">
           {[
-            "Creation, publication, archive, and restore events are surfaced first.",
-            "Timeline cards collapse cleanly on narrow screens to keep scanning readable.",
-            "Revision history stays contextual instead of becoming a noisy activity log.",
+            "New submissions remain here until an admin approves them.",
+            "Pending and rejected drafts stay visible with clear editorial status.",
+            "Approval feedback is surfaced before the article moves into your main workspace.",
           ].map((item) => (
-            <div key={item} className="rounded-[1.5rem] border border-border/80 bg-background/70 p-4 text-sm text-muted">
+            <div
+              key={item}
+              className="rounded-3xl border border-border/80 bg-background/70 p-4 text-sm text-muted"
+            >
               {item}
             </div>
           ))}
         </div>
       </div>
-      <div className="space-y-4">
-        {history.map((item) => (
-          <div key={item.id} className="rounded-[1.5rem] border border-border/80 bg-card/80 p-4 sm:p-5">
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
-              <h2 className="text-base font-semibold sm:text-lg">{item.action}</h2>
-              <span className="text-sm text-muted">{item.date}</span>
+      {history.length > 0 ? (
+        <div className="space-y-4">
+          {history.map((item) => (
+            <div
+              key={item.id}
+              className="rounded-3xl border border-border/80 bg-card/80 p-4 sm:p-5"
+            >
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-base font-semibold sm:text-lg">
+                    {item.title}
+                  </h2>
+                  <Badge
+                    className={
+                      item.approvalStatus === "PENDING"
+                        ? "border-amber-500/20 bg-amber-500/10 text-amber-700"
+                        : item.approvalStatus === "REJECTED"
+                          ? "border-rose-500/20 bg-rose-500/10 text-rose-700"
+                          : "border-emerald-500/20 bg-emerald-500/10 text-emerald-700"
+                    }
+                  >
+                    {item.approvalStatus === "PENDING"
+                      ? "Waiting for approval"
+                      : item.approvalStatus === "REJECTED"
+                        ? "Changes requested"
+                        : "Approved"}
+                  </Badge>
+                </div>
+                <span className="text-sm text-muted">
+                  {formatRelativeDate(
+                    item.reviewedAt ?? item.submittedAt ?? item.updatedAt,
+                  )}
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-muted">
+                {getHistoryMessage(item.approvalStatus, item.reviewFeedback)}
+              </p>
+              <p className="mt-3 text-sm text-foreground/80">{item.excerpt}</p>
             </div>
-            <p className="mt-2 text-sm text-muted">{item.summary}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-3xl border border-border/80 bg-card/80 p-5 text-sm text-muted">
+          Your submission history is empty. Start a draft from the dashboard to
+          create your first legal writing entry.
+        </div>
+      )}
     </div>
   );
 }

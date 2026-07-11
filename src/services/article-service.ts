@@ -1,6 +1,12 @@
 import sanitizeHtml from "sanitize-html";
-import { ArticleStatus, ArticleVisibility, Prisma } from "@prisma/client";
-import { demoArticles, demoAuthors } from "@/constants/demo-data";
+import {
+  ArticleApprovalStatus,
+  ArticleStatus,
+  ArticleVisibility,
+  Prisma,
+  UserRole,
+} from "@prisma/client";
+import { demoArticles, demoAuthors, demoCategories, demoTags } from "@/constants/demo-data";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { estimateReadingTime } from "@/lib/algorithms/reading-time";
@@ -15,6 +21,89 @@ type CommunityQuery = {
   sort?: "latest" | "oldest" | "most-viewed" | "most-liked" | "most-commented" | "trending";
 };
 
+type ArticleActor = {
+  id: string;
+  role: UserRole;
+  isSuspended?: boolean;
+  isPortalAdmin?: boolean;
+};
+
+const articleListInclude = {
+  author: true,
+  category: true,
+  tags: {
+    include: {
+      tag: true,
+    },
+  },
+  reviewedBy: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  },
+} satisfies Prisma.ArticleInclude;
+
+type DemoWorkflowArticle = (typeof demoArticles)[number] & {
+  status: ArticleStatus;
+  approvalStatus: ArticleApprovalStatus;
+  submittedAt: string;
+  reviewedAt: string | null;
+  reviewFeedback: string | null;
+  createdAt: string;
+  reviewedBy:
+    | {
+        id: string;
+        name: string;
+        email: string;
+      }
+    | null;
+};
+
+function getDemoWorkflowArticles(): DemoWorkflowArticle[] {
+  return [
+    {
+      ...demoArticles[0],
+      status: ArticleStatus.PUBLISHED,
+      approvalStatus: ArticleApprovalStatus.APPROVED,
+      createdAt: "2026-07-07T10:30:00.000Z",
+      submittedAt: "2026-07-07T10:30:00.000Z",
+      reviewedAt: "2026-07-08T09:15:00.000Z",
+      reviewFeedback: "Approved for publication.",
+      reviewedBy: {
+        id: "env-admin",
+        name: "LexCircle Admin",
+        email: "admin@example.com",
+      },
+    },
+    {
+      ...demoArticles[1],
+      status: ArticleStatus.DRAFT,
+      approvalStatus: ArticleApprovalStatus.PENDING,
+      createdAt: "2026-07-11T08:45:00.000Z",
+      submittedAt: "2026-07-11T08:45:00.000Z",
+      reviewedAt: null,
+      reviewFeedback: null,
+      reviewedBy: null,
+    },
+    {
+      ...demoArticles[2],
+      status: ArticleStatus.DRAFT,
+      approvalStatus: ArticleApprovalStatus.REJECTED,
+      createdAt: "2026-07-10T07:30:00.000Z",
+      submittedAt: "2026-07-10T07:30:00.000Z",
+      reviewedAt: "2026-07-10T11:10:00.000Z",
+      reviewFeedback: "Tighten the excerpt and add stronger supporting detail before resubmitting.",
+      reviewedBy: {
+        id: "env-admin",
+        name: "LexCircle Admin",
+        email: "admin@example.com",
+      },
+    },
+  ];
+}
+
 function sanitizeContent(content: string) {
   return sanitizeHtml(content, {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "h1", "h2", "h3", "h4"]),
@@ -24,6 +113,101 @@ function sanitizeContent(content: string) {
       "*": ["class"],
     },
   });
+}
+
+async function resolveCategoryId(input: string) {
+  const normalized = input.trim();
+  const demoCategory = demoCategories.find(
+    (item) =>
+      item.id === normalized ||
+      item.slug.toLowerCase() === normalized.toLowerCase() ||
+      item.name.toLowerCase() === normalized.toLowerCase(),
+  );
+
+  const category = await prisma.category.findFirst({
+    where: {
+      OR: [
+        { id: normalized },
+        { slug: { equals: normalized, mode: "insensitive" } },
+        { name: { equals: normalized, mode: "insensitive" } },
+        ...(demoCategory
+          ? [
+              { slug: { equals: demoCategory.slug, mode: "insensitive" as const } },
+              { name: { equals: demoCategory.name, mode: "insensitive" as const } },
+            ]
+          : []),
+      ],
+    },
+    select: { id: true },
+  });
+
+  if (!category) {
+    const label = demoCategory?.name ?? normalized.replace(/[-_]+/g, " ").trim();
+    const created = await prisma.category.create({
+      data: {
+        name: label
+          .split(" ")
+          .filter(Boolean)
+          .map((part) => part[0]?.toUpperCase() + part.slice(1).toLowerCase())
+          .join(" "),
+        slug: demoCategory?.slug ?? slugify(normalized),
+        description: `${label} articles, blogs, and legal research commentary.`,
+      },
+      select: { id: true },
+    });
+
+    return created.id;
+  }
+
+  return category.id;
+}
+
+async function resolveTagIds(inputs: string[]) {
+  const normalizedInputs = [...new Set(inputs.map((item) => item.trim()).filter(Boolean))];
+  const tagIds: string[] = [];
+
+  for (const input of normalizedInputs) {
+    const demoTag = demoTags.find(
+      (item) =>
+        item.id === input ||
+        item.slug.toLowerCase() === input.toLowerCase() ||
+        item.name.toLowerCase() === input.toLowerCase(),
+    );
+
+    const existing = await prisma.tag.findFirst({
+      where: {
+        OR: [
+          { id: input },
+          { slug: { equals: input, mode: "insensitive" } },
+          { name: { equals: input, mode: "insensitive" } },
+          ...(demoTag
+            ? [
+                { slug: { equals: demoTag.slug, mode: "insensitive" as const } },
+                { name: { equals: demoTag.name, mode: "insensitive" as const } },
+              ]
+            : []),
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (existing) {
+      tagIds.push(existing.id);
+      continue;
+    }
+
+    const created = await prisma.tag.create({
+      data: {
+        name: demoTag?.name ?? input,
+        slug: demoTag?.slug ?? slugify(input),
+      },
+      select: { id: true },
+    });
+
+    tagIds.push(created.id);
+  }
+
+  return tagIds;
 }
 
 export async function listCommunityArticles(query: CommunityQuery = {}) {
@@ -71,6 +255,7 @@ export async function listCommunityArticles(query: CommunityQuery = {}) {
 
   const where: Prisma.ArticleWhereInput = {
     status: ArticleStatus.PUBLISHED,
+    approvalStatus: ArticleApprovalStatus.APPROVED,
     visibility: ArticleVisibility.PUBLIC,
     deletedAt: null,
     ...(query.category ? { category: { slug: query.category } } : {}),
@@ -101,15 +286,7 @@ export async function listCommunityArticles(query: CommunityQuery = {}) {
   return prisma.article.findMany({
     where,
     orderBy,
-    include: {
-      author: true,
-      category: true,
-      tags: {
-        include: {
-          tag: true,
-        },
-      },
-    },
+    include: articleListInclude,
   });
 }
 
@@ -118,8 +295,16 @@ export async function getArticleBySlug(slug: string) {
     return demoArticles.find((article) => article.slug === slug) ?? null;
   }
 
-  return prisma.article.findUnique({
-    where: { slug },
+  return prisma.article.findFirst({
+    where: {
+      slug,
+      status: ArticleStatus.PUBLISHED,
+      approvalStatus: ArticleApprovalStatus.APPROVED,
+      deletedAt: null,
+      visibility: {
+        not: ArticleVisibility.PRIVATE,
+      },
+    },
     include: {
       author: true,
       category: true,
@@ -142,58 +327,147 @@ export async function listAuthorArticles(username: string) {
     where: {
       author: { username },
       status: ArticleStatus.PUBLISHED,
+      approvalStatus: ArticleApprovalStatus.APPROVED,
       deletedAt: null,
     },
-    include: {
-      author: true,
-      category: true,
-      tags: { include: { tag: true } },
-    },
+    include: articleListInclude,
     orderBy: { publishedAt: "desc" },
   });
 }
 
-export async function getDashboardOverview() {
+export async function listUserArticles(authorId: string) {
   if (!isDatabaseConfigured()) {
+    return getDemoWorkflowArticles().filter(
+      (article) => article.approvalStatus === ArticleApprovalStatus.APPROVED,
+    );
+  }
+
+  return prisma.article.findMany({
+    where: {
+      authorId,
+      approvalStatus: ArticleApprovalStatus.APPROVED,
+      deletedAt: null,
+    },
+    include: articleListInclude,
+    orderBy: [{ updatedAt: "desc" }],
+  });
+}
+
+export async function listUserHistory(authorId: string) {
+  if (!isDatabaseConfigured()) {
+    return getDemoWorkflowArticles();
+  }
+
+  return prisma.article.findMany({
+    where: {
+      authorId,
+      deletedAt: null,
+    },
+    include: articleListInclude,
+    orderBy: [{ updatedAt: "desc" }],
+  });
+}
+
+export async function getDashboardOverview(authorId: string) {
+  if (!isDatabaseConfigured()) {
+    const articles = getDemoWorkflowArticles();
     return {
-      totalArticles: demoArticles.length,
-      publishedArticles: demoArticles.length,
-      draftArticles: 2,
-      archivedArticles: 1,
+      totalArticles: articles.length,
+      publishedArticles: articles.filter((article) => article.status === ArticleStatus.PUBLISHED)
+        .length,
+      draftArticles: articles.filter(
+        (article) =>
+          article.status === ArticleStatus.DRAFT &&
+          article.approvalStatus === ArticleApprovalStatus.APPROVED,
+      ).length,
+      archivedArticles: 0,
+      pendingApprovalArticles: articles.filter(
+        (article) => article.approvalStatus === ArticleApprovalStatus.PENDING,
+      ).length,
+      rejectedArticles: articles.filter(
+        (article) => article.approvalStatus === ArticleApprovalStatus.REJECTED,
+      ).length,
       totalViews: demoArticles.reduce((sum, article) => sum + article.viewCount, 0),
       totalLikes: demoArticles.reduce((sum, article) => sum + article.likeCount, 0),
       totalComments: demoArticles.reduce((sum, article) => sum + article.commentCount, 0),
       totalBookmarks: demoArticles.reduce((sum, article) => sum + article.bookmarkCount, 0),
-      recentArticles: demoArticles.slice(0, 3),
+      recentArticles: articles,
       authors: demoAuthors.slice(0, 3),
     };
   }
 
-  const articles = await prisma.article.findMany({
-    take: 5,
-    orderBy: { updatedAt: "desc" },
-    include: {
-      category: true,
-      author: true,
-      tags: { include: { tag: true } },
-    },
-  });
+  const articleWhere: Prisma.ArticleWhereInput = {
+    authorId,
+    deletedAt: null,
+  };
 
-  const aggregate = await prisma.article.aggregate({
-    _count: { id: true },
-    _sum: {
-      viewCount: true,
-      likeCount: true,
-      commentCount: true,
-      bookmarkCount: true,
-    },
-  });
+  const [
+    articles,
+    totalArticles,
+    publishedArticles,
+    draftArticles,
+    archivedArticles,
+    pendingApprovalArticles,
+    rejectedArticles,
+    aggregate,
+  ] = await Promise.all([
+    prisma.article.findMany({
+      where: articleWhere,
+      take: 5,
+      orderBy: { updatedAt: "desc" },
+      include: articleListInclude,
+    }),
+    prisma.article.count({ where: articleWhere }),
+    prisma.article.count({
+      where: {
+        ...articleWhere,
+        status: ArticleStatus.PUBLISHED,
+        approvalStatus: ArticleApprovalStatus.APPROVED,
+      },
+    }),
+    prisma.article.count({
+      where: {
+        ...articleWhere,
+        status: ArticleStatus.DRAFT,
+        approvalStatus: ArticleApprovalStatus.APPROVED,
+      },
+    }),
+    prisma.article.count({
+      where: {
+        ...articleWhere,
+        status: ArticleStatus.ARCHIVED,
+      },
+    }),
+    prisma.article.count({
+      where: {
+        ...articleWhere,
+        approvalStatus: ArticleApprovalStatus.PENDING,
+      },
+    }),
+    prisma.article.count({
+      where: {
+        ...articleWhere,
+        approvalStatus: ArticleApprovalStatus.REJECTED,
+      },
+    }),
+    prisma.article.aggregate({
+      where: articleWhere,
+      _sum: {
+        viewCount: true,
+        likeCount: true,
+        commentCount: true,
+        bookmarkCount: true,
+      },
+    }),
+  ]);
 
   return {
-    totalArticles: aggregate._count.id,
-    publishedArticles: articles.filter((article) => article.status === ArticleStatus.PUBLISHED).length,
-    draftArticles: articles.filter((article) => article.status === ArticleStatus.DRAFT).length,
-    archivedArticles: articles.filter((article) => article.status === ArticleStatus.ARCHIVED).length,
+    totalArticles,
+    publishedArticles,
+    draftArticles,
+    archivedArticles,
+    pendingApprovalArticles,
+    rejectedArticles,
     totalViews: aggregate._sum.viewCount ?? 0,
     totalLikes: aggregate._sum.likeCount ?? 0,
     totalComments: aggregate._sum.commentCount ?? 0,
@@ -201,6 +475,62 @@ export async function getDashboardOverview() {
     recentArticles: articles,
     authors: [],
   };
+}
+
+export async function listPendingArticleApprovals() {
+  if (!isDatabaseConfigured()) {
+    return getDemoWorkflowArticles().filter(
+      (article) => article.approvalStatus === ArticleApprovalStatus.PENDING,
+    );
+  }
+
+  return prisma.article.findMany({
+    where: {
+      approvalStatus: ArticleApprovalStatus.PENDING,
+      deletedAt: null,
+    },
+    include: articleListInclude,
+    orderBy: [{ submittedAt: "asc" }, { createdAt: "asc" }],
+  });
+}
+
+export async function getArticleApprovalSummary() {
+  if (!isDatabaseConfigured()) {
+    const articles = getDemoWorkflowArticles();
+    return {
+      pending: articles.filter((article) => article.approvalStatus === ArticleApprovalStatus.PENDING)
+        .length,
+      approved: articles.filter(
+        (article) => article.approvalStatus === ArticleApprovalStatus.APPROVED,
+      ).length,
+      rejected: articles.filter(
+        (article) => article.approvalStatus === ArticleApprovalStatus.REJECTED,
+      ).length,
+    };
+  }
+
+  const [pending, approved, rejected] = await Promise.all([
+    prisma.article.count({
+      where: {
+        approvalStatus: ArticleApprovalStatus.PENDING,
+        deletedAt: null,
+      },
+    }),
+    prisma.article.count({
+      where: {
+        approvalStatus: ArticleApprovalStatus.APPROVED,
+        deletedAt: null,
+      },
+    }),
+    prisma.article.count({
+      where: {
+        approvalStatus: ArticleApprovalStatus.REJECTED,
+        deletedAt: null,
+      },
+    }),
+  ]);
+
+  return { pending, approved, rejected };
 }
 
 export async function createArticle(input: {
@@ -231,16 +561,22 @@ export async function createArticle(input: {
       readingTime,
       wordCount,
       status: ArticleStatus.DRAFT,
+      approvalStatus: ArticleApprovalStatus.PENDING,
+      submittedAt: new Date().toISOString(),
     };
   }
 
+  const [categoryId, tagIds] = await Promise.all([
+    resolveCategoryId(input.categoryId),
+    resolveTagIds(input.tags),
+  ]);
   const existingSlugs = new Set((await prisma.article.findMany({ select: { slug: true } })).map((article) => article.slug));
   const slug = resolveSlugCollision(baseSlug, existingSlugs);
 
   return prisma.article.create({
     data: {
       authorId: input.authorId,
-      categoryId: input.categoryId,
+      categoryId,
       title: input.title,
       slug,
       subtitle: input.subtitle,
@@ -250,12 +586,41 @@ export async function createArticle(input: {
       coverImage: input.coverImage,
       readingTime,
       wordCount,
+      approvalStatus: ArticleApprovalStatus.PENDING,
+      submittedAt: new Date(),
       tags: {
-        createMany: {
-          data: input.tags.map((tagId) => ({ tagId })),
-        },
+        create: tagIds.map((tagId) => ({ tagId })),
       },
     },
+    include: articleListInclude,
+  });
+}
+
+export async function reviewArticleSubmission(input: {
+  articleId: string;
+  reviewerId?: string | null;
+  decision: Extract<ArticleApprovalStatus, "APPROVED" | "REJECTED">;
+  reviewFeedback?: string | null;
+}) {
+  if (!isDatabaseConfigured()) {
+    return {
+      id: input.articleId,
+      approvalStatus: input.decision,
+      reviewedAt: new Date().toISOString(),
+      reviewFeedback: input.reviewFeedback ?? null,
+    };
+  }
+
+  return prisma.article.update({
+    where: { id: input.articleId },
+    data: {
+      approvalStatus: input.decision,
+      reviewedAt: new Date(),
+      reviewedById: input.reviewerId ?? null,
+      reviewFeedback: input.reviewFeedback ?? null,
+      status: ArticleStatus.DRAFT,
+    },
+    include: articleListInclude,
   });
 }
 
@@ -277,5 +642,66 @@ export async function changeArticleState(id: string, nextStatus: ArticleStatus) 
       archivedAt: nextStatus === ArticleStatus.ARCHIVED ? new Date() : null,
       deletedAt: nextStatus === ArticleStatus.DELETED ? new Date() : null,
     },
+  });
+}
+
+export async function transitionArticleStateForUser(input: {
+  id: string;
+  nextStatus: ArticleStatus;
+  actor: ArticleActor;
+}) {
+  if (input.actor.isSuspended) {
+    throw new Error("Suspended accounts cannot manage articles.");
+  }
+
+  if (!isDatabaseConfigured()) {
+    return {
+      id: input.id,
+      status: input.nextStatus,
+      approvalStatus:
+        input.nextStatus === ArticleStatus.PUBLISHED
+          ? ArticleApprovalStatus.APPROVED
+          : ArticleApprovalStatus.PENDING,
+    };
+  }
+
+  const article = await prisma.article.findUniqueOrThrow({
+    where: { id: input.id },
+    select: {
+      id: true,
+      authorId: true,
+      status: true,
+      approvalStatus: true,
+      visibility: true,
+      publishedAt: true,
+    },
+  });
+
+  const isPortalAdmin = input.actor.isPortalAdmin || input.actor.role === UserRole.ADMIN;
+  if (!isPortalAdmin && article.authorId !== input.actor.id) {
+    throw new Error("You do not have permission to manage this article.");
+  }
+
+  if (
+    input.nextStatus === ArticleStatus.PUBLISHED &&
+    article.approvalStatus !== ArticleApprovalStatus.APPROVED
+  ) {
+    throw new Error("This article is still waiting for admin approval.");
+  }
+
+  if (!canTransitionArticle(article.status, input.nextStatus)) {
+    throw new Error(`Invalid transition from ${article.status} to ${input.nextStatus}`);
+  }
+
+  return prisma.article.update({
+    where: { id: input.id },
+    data: {
+      status: input.nextStatus,
+      publishedAt:
+        input.nextStatus === ArticleStatus.PUBLISHED ? new Date() : article.publishedAt,
+      archivedAt: input.nextStatus === ArticleStatus.ARCHIVED ? new Date() : null,
+      deletedAt: input.nextStatus === ArticleStatus.DELETED ? new Date() : null,
+    },
+    include: articleListInclude,
   });
 }

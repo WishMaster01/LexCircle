@@ -6,16 +6,24 @@ import { getAuthorProfile } from "@/services/user-service";
 
 export const dynamic = "force-dynamic";
 
-export default async function AuthorPage({ params }: { params: Promise<{ username: string }> }) {
+export default async function AuthorPage({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}) {
   const { username } = await params;
   const author = await getAuthorProfile(username);
   if (!author) notFound();
 
   return (
     <div className="space-y-8">
-      <div className="rounded-[2rem] border border-border/80 bg-card/80 p-8">
+      <div className="rounded-4xl border border-border/80 bg-card/80 p-8">
         <Badge>@{author.username}</Badge>
-        <SectionHeading eyebrow="Author profile" title={author.name} description={author.bio ?? ""} />
+        <SectionHeading
+          eyebrow="Author profile"
+          title={author.name}
+          description={author.bio ?? ""}
+        />
         <div className="mt-6 flex flex-wrap gap-4 text-sm text-muted">
           <span>{author.stats.totalArticles} published articles</span>
           <span>{author.stats.totalViews.toLocaleString()} views</span>

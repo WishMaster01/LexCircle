@@ -29,6 +29,12 @@ enum ArticleVisibility {
   PRIVATE
 }
 
+enum ArticleApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum ReportStatus {
   PENDING
   REVIEWING
@@ -111,6 +117,7 @@ model User {
   activities        ArticleActivity[]
   uploads           Upload[]
   handledContactMessages ContactMessage[] @relation("contactHandler")
+  reviewedArticles  Article[]            @relation("articleReviewer")
 
   @@index([role, isActive, isSuspended])
   @@index([createdAt])
@@ -129,6 +136,7 @@ model Article {
   coverImage         String?
   coverImagePublicId String?
   status             ArticleStatus      @default(DRAFT)
+  approvalStatus     ArticleApprovalStatus @default(PENDING)
   visibility         ArticleVisibility  @default(PUBLIC)
   featured           Boolean            @default(false)
   pinned             Boolean            @default(false)
@@ -141,6 +149,10 @@ model Article {
   seoTitle           String?
   seoDescription     String?
   canonicalUrl       String?
+  submittedAt        DateTime?
+  reviewedAt         DateTime?
+  reviewedById       String?
+  reviewFeedback     String?
   publishedAt        DateTime?
   scheduledAt        DateTime?
   archivedAt         DateTime?
@@ -157,8 +169,10 @@ model Article {
   revisions          ArticleRevision[]
   reports            Report[]
   activityLogs       ArticleActivity[]
+  reviewedBy         User?              @relation("articleReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
 
   @@index([status, publishedAt])
+  @@index([approvalStatus, createdAt])
   @@index([authorId, updatedAt])
   @@index([categoryId, publishedAt])
   @@index([visibility, publishedAt])

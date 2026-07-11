@@ -1,13 +1,68 @@
 import Link from "next/link";
-import { ArrowRight, Clock3, FilePenLine, PenSquare, RefreshCcw } from "lucide-react";
-import { ArticleCard } from "@/components/articles/article-card";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronDown,
+  Clock3,
+  FilePenLine,
+  RefreshCcw,
+  Scale,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { requireUserPageSession } from "@/lib/auth-guards";
+import { formatRelativeDate } from "@/lib/utils";
 import { getDashboardOverview } from "@/services/article-service";
 
 export const dynamic = "force-dynamic";
 
+const startOptions = [
+  {
+    label: "Article",
+    text: "Doctrine-focused long-form legal writing.",
+    href: "/dashboard/articles/new?kind=article",
+  },
+  {
+    label: "Blog",
+    text: "Short legal commentary and current updates.",
+    href: "/dashboard/articles/new?kind=blog",
+  },
+  {
+    label: "Case Note",
+    text: "Judgment breakdown with issues, reasoning, and impact.",
+    href: "/dashboard/articles/new?kind=case-note",
+  },
+  {
+    label: "Research Paper",
+    text: "Academic legal writing for seminar, journal, or dissertation work.",
+    href: "/dashboard/articles/new?kind=research-paper",
+  },
+] as const;
+
+const workspaceActions = [
+  {
+    title: "Review writing history",
+    text: "Track recent revisions, restores, and publishing checkpoints.",
+    href: "/dashboard/history",
+    icon: Clock3,
+  },
+  {
+    title: "Continue editing",
+    text: "Jump back into your latest article and keep momentum high.",
+    href: "/dashboard/articles",
+    icon: FilePenLine,
+  },
+  {
+    title: "Revisit archived work",
+    text: "Bring back older ideas when you are ready to refine them.",
+    href: "/dashboard/articles",
+    icon: RefreshCcw,
+  },
+] as const;
+
 export default async function DashboardPage() {
-  const overview = await getDashboardOverview();
+  const session = await requireUserPageSession();
+  const overview = await getDashboardOverview(session.user.id);
 
   return (
     <div className="space-y-8">
@@ -18,48 +73,58 @@ export default async function DashboardPage() {
       />
 
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8">
-          <h2 className="text-2xl font-semibold tracking-[-0.04em]">Workspace focus</h2>
+        <div className="rounded-4xl border border-border/80 bg-card/80 p-5 sm:p-8">
+          <h2 className="text-2xl font-semibold tracking-[-0.04em]">
+            Workspace focus
+          </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            Return to your active drafts, continue revisions, and move quickly between creation and
-            history without scanning a metrics-heavy screen.
+            Move between pending drafts, case notes, research work, and recent
+            edits from one law-focused writing workspace.
           </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {[
-              {
-                title: "Start a new article",
-                text: "Open the editor and begin with a clean draft workspace.",
-                href: "/dashboard/articles/new",
-                icon: PenSquare,
-              },
-              {
-                title: "Review writing history",
-                text: "Track recent revisions, restores, and publishing checkpoints.",
-                href: "/dashboard/history",
-                icon: Clock3,
-              },
-              {
-                title: "Continue editing",
-                text: "Jump back into your latest article and keep momentum high.",
-                href: "/dashboard/articles",
-                icon: FilePenLine,
-              },
-              {
-                title: "Revisit archived work",
-                text: "Bring back older ideas when you are ready to refine them.",
-                href: "/dashboard/articles",
-                icon: RefreshCcw,
-              },
-            ].map((item) => {
+            <details className="group rounded-3xl border border-border/80 bg-background/70 p-5">
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
+                <div>
+                  <Scale className="size-5 text-accent" />
+                  <h3 className="mt-4 text-lg font-semibold tracking-[-0.03em]">
+                    Start
+                  </h3>
+                  <p className="mt-2 text-sm text-muted">
+                    Open a new legal writing draft and choose the format you
+                    want to publish.
+                  </p>
+                </div>
+                <ChevronDown className="mt-1 size-4 text-muted transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="mt-5 grid gap-3">
+                {startOptions.map((option) => (
+                  <Link
+                    key={option.label}
+                    href={option.href}
+                    className="rounded-2xl border border-border/80 bg-card/80 p-4 hover:-translate-y-0.5"
+                  >
+                    <p className="text-sm font-semibold text-foreground">
+                      {option.label}
+                    </p>
+                    <p className="mt-1 text-sm text-muted">{option.text}</p>
+                  </Link>
+                ))}
+              </div>
+            </details>
+
+            {workspaceActions.map((item) => {
               const Icon = item.icon;
+
               return (
                 <Link
                   key={item.title}
                   href={item.href}
-                  className="rounded-[1.5rem] border border-border/80 bg-background/70 p-5 hover:-translate-y-0.5"
+                  className="rounded-3xl border border-border/80 bg-background/70 p-5 hover:-translate-y-0.5"
                 >
                   <Icon className="size-5 text-accent" />
-                  <h3 className="mt-4 text-lg font-semibold tracking-[-0.03em]">{item.title}</h3>
+                  <h3 className="mt-4 text-lg font-semibold tracking-[-0.03em]">
+                    {item.title}
+                  </h3>
                   <p className="mt-2 text-sm text-muted">{item.text}</p>
                   <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-accent">
                     Open
@@ -71,25 +136,36 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8">
-          <h2 className="text-2xl font-semibold tracking-[-0.04em]">Current editorial queue</h2>
+        <div className="rounded-4xl border border-border/80 bg-card/80 p-5 sm:p-8">
+          <h2 className="text-2xl font-semibold tracking-[-0.04em]">
+            Current editorial queue
+          </h2>
           <div className="mt-6 space-y-4">
             {[
               {
                 label: "Active drafts",
-                text: `${overview.draftArticles} draft workspaces currently need attention.`,
+                text: `${overview.draftArticles} approved drafts are ready for deeper editing.`,
+              },
+              {
+                label: "Pending approval",
+                text: `${overview.pendingApprovalArticles} draft submissions are waiting for admin review.`,
               },
               {
                 label: "Published work",
-                text: `${overview.publishedArticles} pieces are live in the community feed.`,
+                text: `${overview.publishedArticles} approved pieces are live in the community feed.`,
               },
               {
-                label: "Archived ideas",
-                text: `${overview.archivedArticles} articles are stored for later refinement.`,
+                label: "Returned by admin",
+                text: `${overview.rejectedArticles} submissions need edits before resubmission.`,
               },
             ].map((item) => (
-              <div key={item.label} className="rounded-[1.5rem] border border-border/80 bg-background/70 p-4">
-                <p className="text-sm font-medium text-foreground">{item.label}</p>
+              <div
+                key={item.label}
+                className="rounded-3xl border border-border/80 bg-background/70 p-4"
+              >
+                <p className="text-sm font-medium text-foreground">
+                  {item.label}
+                </p>
                 <p className="mt-2 text-sm text-muted">{item.text}</p>
               </div>
             ))}
@@ -98,12 +174,66 @@ export default async function DashboardPage() {
       </section>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold tracking-[-0.04em]">Recently edited</h2>
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {overview.recentArticles.map((article) => (
-            <ArticleCard key={article.id} article={article as never} />
-          ))}
-        </div>
+        <h2 className="text-2xl font-semibold tracking-[-0.04em]">
+          Recently edited
+        </h2>
+        {overview.recentArticles.length > 0 ? (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {overview.recentArticles.map((article) => (
+              <div
+                key={article.id}
+                className="rounded-3xl border border-border/80 bg-card/80 p-5"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary">
+                        {article.category?.name ?? "Uncategorized"}
+                      </Badge>
+                      <Badge
+                        className={
+                          article.approvalStatus === "PENDING"
+                            ? "border-amber-500/20 bg-amber-500/10 text-amber-700"
+                            : article.approvalStatus === "REJECTED"
+                              ? "border-rose-500/20 bg-rose-500/10 text-rose-700"
+                              : "border-emerald-500/20 bg-emerald-500/10 text-emerald-700"
+                        }
+                      >
+                        {article.approvalStatus === "PENDING"
+                          ? "Waiting for approval"
+                          : article.approvalStatus === "REJECTED"
+                            ? "Needs changes"
+                            : "Approved"}
+                      </Badge>
+                    </div>
+                    <h3 className="text-xl font-semibold tracking-[-0.04em]">
+                      {article.title}
+                    </h3>
+                    <p className="text-sm text-muted">{article.excerpt}</p>
+                  </div>
+                  {article.approvalStatus === "APPROVED" ? (
+                    <CheckCircle2 className="size-5 text-emerald-600" />
+                  ) : null}
+                </div>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border/80 pt-4 text-sm text-muted">
+                  <span>Updated {formatRelativeDate(article.updatedAt)}</span>
+                  <Link
+                    href="/dashboard/history"
+                    className="inline-flex items-center gap-2 font-medium text-accent"
+                  >
+                    Open history
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-border/80 bg-card/80 p-5 text-sm text-muted">
+            No drafts or approved submissions yet. Use the Start menu to create
+            your first legal article, blog, case note, or research paper.
+          </div>
+        )}
       </div>
     </div>
   );

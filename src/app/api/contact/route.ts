@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     support: "support",
     partnership: "partnership",
     security: "security",
-    demo: "product demo",
+    demo: "campus demo",
     other: "general",
   };
 

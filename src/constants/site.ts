@@ -1,9 +1,9 @@
 export const appConfig = {
-  name: "InkSphere",
+  name: "LexCircle",
   description:
-    "A multi-user community publishing platform with editorial workflows, moderation, analytics, and explainable discovery.",
+    "A law student community platform for publishing legal blogs, articles, case notes, and research papers.",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  supportEmail: "support@inksphere.dev",
+  supportEmail: "support@lexcircle.dev",
 };
 
 export const mainNav = [

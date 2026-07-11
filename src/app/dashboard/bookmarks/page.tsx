@@ -17,7 +17,10 @@ export default function BookmarksPage() {
             "Use tags and categories to scan quickly on smaller screens.",
             "Bookmarks are optimized for touch-friendly reading sessions.",
           ].map((item) => (
-            <div key={item} className="rounded-[1.5rem] border border-border/80 bg-background/70 p-4 text-sm text-muted">
+            <div
+              key={item}
+              className="rounded-3xl border border-border/80 bg-background/70 p-4 text-sm text-muted"
+            >
               {item}
             </div>
           ))}

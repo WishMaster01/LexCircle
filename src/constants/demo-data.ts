@@ -42,18 +42,18 @@ export type DemoArticle = {
 };
 
 export const demoCategories: DemoCategory[] = [
-  { id: "c1", name: "Engineering", slug: "engineering" },
-  { id: "c2", name: "Product", slug: "product" },
-  { id: "c3", name: "Design Systems", slug: "design-systems" },
-  { id: "c4", name: "Startups", slug: "startups" },
+  { id: "c1", name: "Constitutional Law", slug: "constitutional-law" },
+  { id: "c2", name: "Criminal Law", slug: "criminal-law" },
+  { id: "c3", name: "Civil Law", slug: "civil-law" },
+  { id: "c4", name: "Corporate Law", slug: "corporate-law" },
 ];
 
 export const demoTags: DemoTag[] = [
-  { id: "t1", name: "Next.js", slug: "nextjs" },
-  { id: "t2", name: "Prisma", slug: "prisma" },
-  { id: "t3", name: "PostgreSQL", slug: "postgresql" },
-  { id: "t4", name: "Analytics", slug: "analytics" },
-  { id: "t5", name: "DX", slug: "dx" },
+  { id: "t1", name: "Case Analysis", slug: "case-analysis" },
+  { id: "t2", name: "Legal Research", slug: "legal-research" },
+  { id: "t3", name: "Statutory Interpretation", slug: "statutory-interpretation" },
+  { id: "t4", name: "Constitutional Remedies", slug: "constitutional-remedies" },
+  { id: "t5", name: "Moot Court", slug: "moot-court" },
 ];
 
 export const demoAuthors: DemoAuthor[] = [
@@ -61,28 +61,28 @@ export const demoAuthors: DemoAuthor[] = [
     id: "u1",
     name: "Maya Raman",
     username: "mayaraman",
-    bio: "Writes about resilient product engineering and clean editorial systems.",
+    bio: "Writes on constitutional adjudication, public law theory, and legal method.",
     followers: 1840,
   },
   {
     id: "u2",
     name: "Jordan Lee",
     username: "jordanship",
-    bio: "Designing creator workflows that keep complexity off the page.",
+    bio: "Focuses on criminal procedure, evidence, and student-facing case commentary.",
     followers: 1260,
   },
   {
     id: "u3",
     name: "Sana Patel",
     username: "sanapatel",
-    bio: "Platform analytics, search relevance, and moderation tooling.",
+    bio: "Researches comparative constitutional law and rights-based judicial review.",
     followers: 980,
   },
   {
     id: "u4",
     name: "Noah Carter",
     username: "noahwrites",
-    bio: "Community operations and editorial growth loops.",
+    bio: "Explains corporate governance, securities regulation, and commercial disputes.",
     followers: 760,
   },
 ];
@@ -90,18 +90,18 @@ export const demoAuthors: DemoAuthor[] = [
 export const demoArticles: DemoArticle[] = [
   {
     id: "a1",
-    slug: "designing-an-article-platform-that-scales",
-    title: "Designing an article platform that scales without collapsing into clutter",
-    subtitle: "A practical system for discovery, moderation, and revision history.",
+    slug: "basic-structure-of-a-constitutional-case-note",
+    title: "How to structure a constitutional case note for clarity and authority",
+    subtitle: "A practical approach to facts, issues, holdings, and constitutional impact.",
     excerpt:
-      "The highest-cost mistake in community publishing is treating articles like flat records instead of evolving editorial assets.",
+      "Strong constitutional case notes do more than summarize judgments. They isolate questions, reasoning, and institutional consequences with precision.",
     content: `
-      <h1>Designing an article platform that scales</h1>
-      <p>Community publishing becomes fragile when core state transitions are informal. Drafts leak, rankings become opaque, and moderation tooling is bolted on too late.</p>
-      <h2>What the system needs early</h2>
-      <p>Model lifecycle states explicitly, preserve revision history, and keep search relevance explainable. Those constraints drive the entire shape of the product.</p>
-      <blockquote>Good editorial infrastructure reduces coordination cost for every writer and moderator on the platform.</blockquote>
-      <p>That means stable permissions, deterministic ranking, and workflows that assume articles will be revised many times.</p>
+      <h1>Building a constitutional case note</h1>
+      <p>A good case note must identify the material facts, the procedural posture, the constitutional issues, and the final holding without losing analytical discipline.</p>
+      <h2>Start with the legal question</h2>
+      <p>Readers should understand the precise constitutional conflict before you move into reasoning, precedent, and implications.</p>
+      <blockquote>The value of a case note lies in disciplined explanation, not exhaustive repetition of the judgment.</blockquote>
+      <p>That means separating ratio from observation and linking the court's logic to doctrine, rights, and institutional practice.</p>
     `,
     coverImage:
       "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80",
@@ -120,17 +120,17 @@ export const demoArticles: DemoArticle[] = [
   },
   {
     id: "a2",
-    slug: "editor-workflows-that-protect-drafts",
-    title: "Editor workflows that protect drafts without slowing authors down",
-    subtitle: "Autosave, revisions, checkpoints, and publish confirmations.",
+    slug: "writing-better-criminal-law-issue-based-blogs",
+    title: "Writing sharper criminal law blogs for issue-based legal commentary",
+    subtitle: "How to frame recent judgments, statutes, and bail jurisprudence clearly.",
     excerpt:
-      "Autosave should prevent loss, not produce noisy history. The trick is separating transient edits from meaningful revision checkpoints.",
+      "The strongest criminal law blogs narrow the issue quickly, explain the legal rule accurately, and show why the development matters beyond the immediate facts.",
     content: `
-      <h1>Draft safety without revision spam</h1>
-      <p>An editor is only trustworthy when writers understand what is durable, what is pending, and what can be restored.</p>
-      <h2>Autosave rules</h2>
-      <p>Debounce requests, create revisions only at checkpoints, and show explicit save state in the interface.</p>
-      <p>That preserves fidelity without turning the history timeline into noise.</p>
+      <h1>Issue-based criminal law blogging</h1>
+      <p>Criminal law commentary works best when it identifies the disputed rule, the factual trigger, and the doctrinal stakes in the first few paragraphs.</p>
+      <h2>Anchor the piece in the legal controversy</h2>
+      <p>Frame the issue around bail, evidence, sentencing, or procedure so the reader can evaluate the legal significance immediately.</p>
+      <p>Then move from facts to principle to criticism in a tight and readable sequence.</p>
     `,
     coverImage:
       "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80",
@@ -148,16 +148,16 @@ export const demoArticles: DemoArticle[] = [
   },
   {
     id: "a3",
-    slug: "explainable-trending-ranking-for-community-feeds",
-    title: "Explainable trending ranking for community feeds",
-    subtitle: "Weighted engagement, recency decay, and bounded top-K selection.",
+    slug: "turning-a-legal-research-problem-into-a-research-paper-outline",
+    title: "Turning a legal research problem into a strong research paper outline",
+    subtitle: "Research questions, authorities, competing views, and a defensible thesis.",
     excerpt:
-      "Trending should surface momentum, not fossilized popularity. Time decay and explainable weights make the feed auditable.",
+      "Legal research papers become stronger when the question, methodology, and scope are fixed before the first long draft is written.",
     content: `
-      <h1>Explainable trending ranking</h1>
-      <p>Ranking systems fail when their incentives are invisible. A simple weighted model with recency decay is often enough for a strong first version.</p>
-      <h2>Why bounded heaps help</h2>
-      <p>When ranking candidate sets in application code, a bounded priority queue keeps selection efficient and predictable.</p>
+      <h1>Planning a legal research paper</h1>
+      <p>A persuasive paper starts with a precise research question, a defined jurisdictional scope, and a clear account of the authorities under review.</p>
+      <h2>Outline before drafting</h2>
+      <p>Use headings for the question, literature, doctrinal background, analysis, counterarguments, and conclusion before writing full prose.</p>
     `,
     coverImage:
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80",
@@ -176,14 +176,14 @@ export const demoArticles: DemoArticle[] = [
   },
   {
     id: "a4",
-    slug: "moderation-workflows-for-growing-writing-communities",
-    title: "Moderation workflows for growing writing communities",
-    subtitle: "Reports, triage queues, restoration, and auditability.",
+    slug: "civil-law-writing-for-contract-and-tort-disputes",
+    title: "Civil law writing for contract and tort disputes",
+    subtitle: "Organizing facts, duties, breaches, causation, and remedies for student readers.",
     excerpt:
-      "Moderation tools need state, history, and clear authorization rules long before the volume feels painful.",
+      "Civil law writing becomes more persuasive when the structure mirrors how courts separate facts, duties, liability, and relief.",
     content: `
-      <h1>Moderation as product infrastructure</h1>
-      <p>Report workflows should be reviewable, reversible, and explicit about who acted and why.</p>
+      <h1>Writing on civil disputes</h1>
+      <p>Contract and tort analysis should move in sequence from facts to legal elements to remedies so that readers can test each conclusion cleanly.</p>
     `,
     coverImage:
       "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80",

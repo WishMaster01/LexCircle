@@ -41,7 +41,9 @@ export function AdminMessageCard({
   const router = useRouter();
   const [status, setStatus] = useState<ContactMessageStatus>(message.status);
   const [handledById, setHandledById] = useState(message.handledById ?? "");
-  const [internalNotes, setInternalNotes] = useState(message.internalNotes ?? "");
+  const [internalNotes, setInternalNotes] = useState(
+    message.internalNotes ?? "",
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   async function onSave() {
@@ -56,7 +58,10 @@ export function AdminMessageCard({
       }),
     });
 
-    const result = (await response.json()) as { success: boolean; message: string };
+    const result = (await response.json()) as {
+      success: boolean;
+      message: string;
+    };
     setIsSaving(false);
 
     if (!result.success) {
@@ -106,13 +111,18 @@ export function AdminMessageCard({
 
       <div className="mt-5 grid gap-4 xl:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor={`status-${message.id}`}>
+          <label
+            className="text-sm font-medium"
+            htmlFor={`status-${message.id}`}
+          >
             Status
           </label>
           <select
             id={`status-${message.id}`}
             value={status}
-            onChange={(event) => setStatus(event.target.value as ContactMessageStatus)}
+            onChange={(event) =>
+              setStatus(event.target.value as ContactMessageStatus)
+            }
             className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-ring"
           >
             {Object.values(ContactMessageStatus).map((option) => (
@@ -124,7 +134,10 @@ export function AdminMessageCard({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor={`handler-${message.id}`}>
+          <label
+            className="text-sm font-medium"
+            htmlFor={`handler-${message.id}`}
+          >
             Assign to
           </label>
           <select
@@ -143,7 +156,10 @@ export function AdminMessageCard({
         </div>
 
         <div className="space-y-2 xl:col-span-2">
-          <label className="text-sm font-medium" htmlFor={`notes-${message.id}`}>
+          <label
+            className="text-sm font-medium"
+            htmlFor={`notes-${message.id}`}
+          >
             Internal notes
           </label>
           <textarea
@@ -151,7 +167,7 @@ export function AdminMessageCard({
             value={internalNotes}
             onChange={(event) => setInternalNotes(event.target.value)}
             rows={4}
-            className="w-full rounded-[1.5rem] border border-border/80 bg-background/80 px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-ring"
+            className="w-full rounded-3xl border border-border/80 bg-background/80 px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-ring"
             placeholder="Add internal triage notes, next steps, or context for the assigned admin."
           />
         </div>
@@ -160,7 +176,9 @@ export function AdminMessageCard({
       <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-muted">
           Last updated {formatRelativeDate(message.updatedAt)}
-          {message.handledAt ? ` · handled ${formatRelativeDate(message.handledAt)}` : ""}
+          {message.handledAt
+            ? ` · handled ${formatRelativeDate(message.handledAt)}`
+            : ""}
         </p>
         <button
           type="button"
@@ -168,7 +186,11 @@ export function AdminMessageCard({
           disabled={isSaving}
           className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
         >
-          {isSaving ? <LoaderCircle className="size-4 animate-spin" /> : <Save className="size-4" />}
+          {isSaving ? (
+            <LoaderCircle className="size-4 animate-spin" />
+          ) : (
+            <Save className="size-4" />
+          )}
           Save changes
         </button>
       </div>

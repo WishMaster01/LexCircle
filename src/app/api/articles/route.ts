@@ -1,4 +1,5 @@
 import { successResponse, errorResponse } from "@/lib/api-response";
+import { requireUserRouteSession } from "@/lib/auth-guards";
 import { createArticle, listCommunityArticles } from "@/services/article-service";
 import { articleSchema } from "@/lib/validations/article";
 
@@ -23,22 +24,38 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireUserRouteSession();
+  if ("response" in auth) {
+    return auth.response;
+  }
+
   const body = await request.json();
   const parsed = articleSchema.safeParse(body);
   if (!parsed.success) {
     return errorResponse("Validation failed", 422, parsed.error.flatten().fieldErrors);
   }
 
-  const article = await createArticle({
-    authorId: "demo-author",
-    title: parsed.data.title,
-    subtitle: parsed.data.subtitle || undefined,
-    excerpt: parsed.data.excerpt,
-    content: parsed.data.content,
-    coverImage: parsed.data.coverImage || undefined,
-    categoryId: parsed.data.categoryId,
-    tags: parsed.data.tags,
-  });
+  try {
+    const article = await createArticle({
+      authorId: auth.session.user.id,
+      title: parsed.data.title,
+      subtitle: parsed.data.subtitle || undefined,
+      excerpt: parsed.data.excerpt,
+      content: parsed.data.content,
+      coverImage: parsed.data.coverImage || undefined,
+      categoryId: parsed.data.categoryId,
+      tags: parsed.data.tags,
+    });
 
-  return successResponse("Article created successfully", article, 201);
+    return successResponse(
+      "Draft submitted successfully. It is now waiting for admin approval.",
+      article,
+      201,
+    );
+  } catch (error) {
+    return errorResponse(
+      error instanceof Error ? error.message : "Unable to create article",
+      400,
+    );
+  }
 }

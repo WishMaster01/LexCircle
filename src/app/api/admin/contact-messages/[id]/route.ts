@@ -1,4 +1,5 @@
 import { errorResponse, successResponse } from "@/lib/api-response";
+import { requireAdminRouteSession } from "@/lib/auth-guards";
 import { updateContactMessage } from "@/services/contact-service";
 import { contactAdminUpdateSchema } from "@/lib/validations/contact-admin";
 
@@ -6,6 +7,11 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const auth = await requireAdminRouteSession();
+  if ("response" in auth) {
+    return auth.response;
+  }
+
   const body = await request.json();
   const { id } = await params;
   const parsed = contactAdminUpdateSchema.safeParse(body);

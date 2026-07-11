@@ -1,10 +1,10 @@
-# InkSphere
+# LexCircle
 
-InkSphere is a production-oriented community publishing platform built with Next.js App Router, TypeScript, Prisma, PostgreSQL, and Auth.js. It is designed for multi-user article publishing with draft workflows, public discovery, analytics, moderation, and a contact/inbox system suitable for SaaS-style operations.
+LexCircle is a production-oriented community publishing platform built with Next.js App Router, TypeScript, Prisma, PostgreSQL, and Auth.js. It is designed for multi-user article publishing with draft workflows, public discovery, analytics, moderation, and a contact/inbox system suitable for SaaS-style operations.
 
 ## Overview
 
-InkSphere combines:
+LexCircle combines:
 
 - public editorial pages for discovery and reading
 - authenticated author workflows for drafting, editing, publishing, and analytics
@@ -84,7 +84,7 @@ This repository currently includes a working application scaffold, route handler
 
 ## Architecture Summary
 
-InkSphere follows a modular application structure:
+LexCircle follows a modular application structure:
 
 - `src/app` contains route segments, pages, and route handlers
 - `src/components` contains UI primitives and feature components
@@ -176,49 +176,49 @@ docs/
 
 ## Environment Variables
 
-Copy [.env.example](D:/InkSphere/.env.example) to `.env` and configure the values appropriate for your environment.
+Copy [.env.example](D:/LexCircle/.env.example) to `.env` and configure the values appropriate for your environment.
 
 ### Required for database-backed operation
 
-| Variable | Purpose |
-| --- | --- |
+| Variable       | Purpose                                                     |
+| -------------- | ----------------------------------------------------------- |
 | `DATABASE_URL` | Pooled PostgreSQL / Neon connection used by the application |
-| `DIRECT_URL` | Direct PostgreSQL connection used by Prisma migrations |
+| `DIRECT_URL`   | Direct PostgreSQL connection used by Prisma migrations      |
 
 ### Required for authentication
 
-| Variable | Purpose |
-| --- | --- |
-| `AUTH_SECRET` | Session and token signing secret |
-| `NEXTAUTH_URL` | Base URL used by Auth.js |
-| `GOOGLE_CLIENT_ID` | Optional Google OAuth client ID |
+| Variable               | Purpose                             |
+| ---------------------- | ----------------------------------- |
+| `AUTH_SECRET`          | Session and token signing secret    |
+| `NEXTAUTH_URL`         | Base URL used by Auth.js            |
+| `GOOGLE_CLIENT_ID`     | Optional Google OAuth client ID     |
 | `GOOGLE_CLIENT_SECRET` | Optional Google OAuth client secret |
 
 ### Required for uploads
 
-| Variable | Purpose |
-| --- | --- |
+| Variable                | Purpose               |
+| ----------------------- | --------------------- |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
-| `CLOUDINARY_API_KEY` | Cloudinary API key |
+| `CLOUDINARY_API_KEY`    | Cloudinary API key    |
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret |
 
 ### Required for contact email delivery
 
-| Variable | Purpose |
-| --- | --- |
-| `RESEND_API_KEY` | Enables Resend delivery path |
-| `CONTACT_FROM_EMAIL` | Verified sender used by the application |
-| `CONTACT_TO_EMAIL` | Admin inbox that receives full contact submissions |
-| `SMTP_HOST` | SMTP host when not using Resend |
-| `SMTP_PORT` | SMTP port |
-| `SMTP_USER` | SMTP username |
-| `SMTP_PASS` | SMTP password |
-| `SMTP_SECURE` | `true` or `false` for SMTP transport security |
+| Variable             | Purpose                                            |
+| -------------------- | -------------------------------------------------- |
+| `RESEND_API_KEY`     | Enables Resend delivery path                       |
+| `CONTACT_FROM_EMAIL` | Verified sender used by the application            |
+| `CONTACT_TO_EMAIL`   | Admin inbox that receives full contact submissions |
+| `SMTP_HOST`          | SMTP host when not using Resend                    |
+| `SMTP_PORT`          | SMTP port                                          |
+| `SMTP_USER`          | SMTP username                                      |
+| `SMTP_PASS`          | SMTP password                                      |
+| `SMTP_SECURE`        | `true` or `false` for SMTP transport security      |
 
 ### Public client configuration
 
-| Variable | Purpose |
-| --- | --- |
+| Variable              | Purpose                |
+| --------------------- | ---------------------- |
 | `NEXT_PUBLIC_APP_URL` | Public application URL |
 
 ## Contact Delivery Behavior
@@ -303,21 +303,21 @@ http://localhost:3000
 
 ## Available Scripts
 
-| Script | Description |
-| --- | --- |
-| `npm run dev` | Start local development server |
-| `npm run build` | Generate Prisma client and build production bundle |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run typecheck` | Run TypeScript checking |
-| `npm run test` | Run unit tests with Vitest |
-| `npm run test:watch` | Run Vitest in watch mode |
-| `npm run test:e2e` | Run Playwright tests |
-| `npm run db:generate` | Generate Prisma client |
-| `npm run db:migrate` | Run Prisma development migration |
-| `npm run db:deploy` | Apply production migrations |
-| `npm run db:seed` | Seed database |
-| `npm run db:studio` | Open Prisma Studio |
+| Script                | Description                                        |
+| --------------------- | -------------------------------------------------- |
+| `npm run dev`         | Start local development server                     |
+| `npm run build`       | Generate Prisma client and build production bundle |
+| `npm run start`       | Start production server                            |
+| `npm run lint`        | Run ESLint                                         |
+| `npm run typecheck`   | Run TypeScript checking                            |
+| `npm run test`        | Run unit tests with Vitest                         |
+| `npm run test:watch`  | Run Vitest in watch mode                           |
+| `npm run test:e2e`    | Run Playwright tests                               |
+| `npm run db:generate` | Generate Prisma client                             |
+| `npm run db:migrate`  | Run Prisma development migration                   |
+| `npm run db:deploy`   | Apply production migrations                        |
+| `npm run db:seed`     | Seed database                                      |
+| `npm run db:studio`   | Open Prisma Studio                                 |
 
 ## Authentication Design
 
@@ -408,7 +408,7 @@ Representative endpoints:
 - `PATCH /api/admin/contact-messages/[id]`
 - `GET /api/health`
 
-For more detail, see [docs/api.md](D:/InkSphere/docs/api.md).
+For more detail, see [docs/api.md](D:/LexCircle/docs/api.md).
 
 ## Algorithms and Data Structures
 
@@ -429,7 +429,7 @@ Examples:
 - revision diffing
 - article state transition rules
 
-See [docs/algorithms.md](D:/InkSphere/docs/algorithms.md) for details.
+See [docs/algorithms.md](D:/LexCircle/docs/algorithms.md) for details.
 
 ## Testing Strategy
 
@@ -469,7 +469,7 @@ Deployment steps:
 3. Run `npm run build`
 4. Deploy the application
 
-See [docs/deployment.md](D:/InkSphere/docs/deployment.md) and [docs/database-setup.md](D:/InkSphere/docs/database-setup.md).
+See [docs/deployment.md](D:/LexCircle/docs/deployment.md) and [docs/database-setup.md](D:/LexCircle/docs/database-setup.md).
 
 ## Operational Notes
 
@@ -526,10 +526,10 @@ This repository is strong as a foundation, but some areas remain intentionally i
 
 ## Supplemental Documentation
 
-- [docs/api.md](D:/InkSphere/docs/api.md)
-- [docs/algorithms.md](D:/InkSphere/docs/algorithms.md)
-- [docs/database-setup.md](D:/InkSphere/docs/database-setup.md)
-- [docs/deployment.md](D:/InkSphere/docs/deployment.md)
+- [docs/api.md](D:/LexCircle/docs/api.md)
+- [docs/algorithms.md](D:/LexCircle/docs/algorithms.md)
+- [docs/database-setup.md](D:/LexCircle/docs/database-setup.md)
+- [docs/deployment.md](D:/LexCircle/docs/deployment.md)
 
 ## License / Usage
 

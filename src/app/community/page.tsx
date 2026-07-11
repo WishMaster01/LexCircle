@@ -1,6 +1,8 @@
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ArticleCard } from "@/components/articles/article-card";
 import { demoCategories, demoTags } from "@/constants/demo-data";
+import { getAuthSession } from "@/lib/auth-guards";
+import { getUserArticleInteractionMap } from "@/services/article-engagement-service";
 import { listCommunityArticles } from "@/services/article-service";
 
 export const dynamic = "force-dynamic";
@@ -10,9 +12,11 @@ export default async function CommunityPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const session = await getAuthSession();
   const params = await searchParams;
   const query = typeof params.query === "string" ? params.query : "";
-  const category = typeof params.category === "string" ? params.category : undefined;
+  const category =
+    typeof params.category === "string" ? params.category : undefined;
   const tag = typeof params.tag === "string" ? params.tag : undefined;
   const sort = typeof params.sort === "string" ? params.sort : "trending";
 
@@ -28,19 +32,26 @@ export default async function CommunityPage({
       | "most-commented"
       | "trending",
   });
+  const interactionMap = await getUserArticleInteractionMap(
+    articles.map((article) => article.id),
+    session?.user.id,
+  );
 
   return (
     <div className="space-y-8">
       <SectionHeading
         eyebrow="Community"
-        title="Published stories from the entire platform"
-        description="Search, filter, and rank community articles with transparent discovery rules."
+        title="Published legal writing from the entire platform"
+        description="Search, filter, and rank legal articles, case notes, blogs, and research writing with transparent discovery rules."
       />
 
       <form className="rounded-[1.75rem] border border-border/80 bg-card/80 p-4 sm:p-5">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,0.7fr))]">
           <div className="space-y-2 md:col-span-2 xl:col-span-1">
-            <label htmlFor="community-query" className="text-sm font-medium text-foreground">
+            <label
+              htmlFor="community-query"
+              className="text-sm font-medium text-foreground"
+            >
               Search
             </label>
             <input
@@ -52,7 +63,10 @@ export default async function CommunityPage({
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="community-category" className="text-sm font-medium text-foreground">
+            <label
+              htmlFor="community-category"
+              className="text-sm font-medium text-foreground"
+            >
               Category
             </label>
             <select
@@ -70,7 +84,10 @@ export default async function CommunityPage({
             </select>
           </div>
           <div className="space-y-2">
-            <label htmlFor="community-sort" className="text-sm font-medium text-foreground">
+            <label
+              htmlFor="community-sort"
+              className="text-sm font-medium text-foreground"
+            >
               Sort
             </label>
             <select
@@ -88,7 +105,10 @@ export default async function CommunityPage({
             </select>
           </div>
           <div className="space-y-2">
-            <label htmlFor="community-tag" className="text-sm font-medium text-foreground">
+            <label
+              htmlFor="community-tag"
+              className="text-sm font-medium text-foreground"
+            >
               Tag
             </label>
             <select
@@ -106,11 +126,15 @@ export default async function CommunityPage({
             </select>
           </div>
         </div>
-        <div className="mt-4 flex flex-col gap-3 rounded-[1.5rem] border border-border/70 bg-background/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-4 flex flex-col gap-3 rounded-3xl border border-border/70 bg-background/60 p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted">
-            Use filters to narrow the feed without losing ranked discovery context.
+            Use filters to narrow the feed without losing ranked discovery
+            context.
           </p>
-          <button type="submit" className="rounded-full bg-accent px-4 py-3 text-sm font-medium text-white sm:min-w-40">
+          <button
+            type="submit"
+            className="rounded-full bg-accent px-4 py-3 text-sm font-medium text-white sm:min-w-40"
+          >
             Apply filters
           </button>
         </div>
@@ -118,7 +142,16 @@ export default async function CommunityPage({
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {articles.map((article) => (
-          <ArticleCard key={article.id} article={article as never} />
+          <ArticleCard
+            key={article.id}
+            article={{
+              ...article,
+              coverImage: article.coverImage ?? null,
+              publishedAt: article.publishedAt,
+              initialLiked: interactionMap.get(article.id)?.liked ?? false,
+              initialBookmarked: interactionMap.get(article.id)?.bookmarked ?? false,
+            }}
+          />
         ))}
       </div>
     </div>

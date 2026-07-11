@@ -22,7 +22,7 @@ const sample = [
 
 export function PerformanceChart() {
   return (
-    <div className="h-72 rounded-[1.5rem] border border-border/80 bg-card/80 p-4">
+    <div className="h-72 rounded-3xl border border-border/80 bg-card/80 p-4">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={sample}>
           <defs>
@@ -35,7 +35,12 @@ export function PerformanceChart() {
           <XAxis dataKey="day" axisLine={false} tickLine={false} />
           <YAxis axisLine={false} tickLine={false} />
           <Tooltip />
-          <Area type="monotone" dataKey="views" stroke="var(--accent)" fill="url(#views)" />
+          <Area
+            type="monotone"
+            dataKey="views"
+            stroke="var(--accent)"
+            fill="url(#views)"
+          />
         </AreaChart>
       </ResponsiveContainer>
     </div>

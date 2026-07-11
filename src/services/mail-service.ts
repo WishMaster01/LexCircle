@@ -4,12 +4,12 @@ import type { ContactFormValues } from "@/lib/validations/contact";
 function buildAdminHtml(payload: ContactFormValues) {
   return `
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#161514">
-      <h2>New InkSphere contact message</h2>
+      <h2>New LexCircle law community contact message</h2>
       <p><strong>Name:</strong> ${payload.name}</p>
       <p><strong>Email:</strong> ${payload.email}</p>
       <p><strong>Topic:</strong> ${payload.topic}</p>
-      <p><strong>Company:</strong> ${payload.company || "Not provided"}</p>
-      <p><strong>Team size:</strong> ${payload.teamSize || "Not provided"}</p>
+      <p><strong>Institution or organization:</strong> ${payload.company || "Not provided"}</p>
+      <p><strong>Group size:</strong> ${payload.teamSize || "Not provided"}</p>
       <p><strong>Message:</strong></p>
       <p>${payload.message.replace(/\n/g, "<br />")}</p>
     </div>
@@ -21,33 +21,33 @@ function buildConfirmationHtml(payload: ContactFormValues) {
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#161514">
       <h2>We received your message</h2>
       <p>Hi ${payload.name},</p>
-      <p>Thanks for contacting InkSphere. Your message has been received and queued for review.</p>
+      <p>Thanks for contacting LexCircle. Your message has been received and queued for review by our law community team.</p>
       <p><strong>Topic:</strong> ${payload.topic}</p>
       <p><strong>Submitted email:</strong> ${payload.email}</p>
       <p><strong>Your message:</strong></p>
       <p>${payload.message.replace(/\n/g, "<br />")}</p>
       <p>We will follow up as soon as possible.</p>
-      <p>InkSphere Team</p>
+      <p>LexCircle Team</p>
     </div>
   `;
 }
 
 export async function sendContactEmail(payload: ContactFormValues) {
-  const adminSubject = `InkSphere contact: ${payload.topic} from ${payload.name}`;
+  const adminSubject = `LexCircle contact: ${payload.topic} from ${payload.name}`;
   const adminText = [
     `Name: ${payload.name}`,
     `Email: ${payload.email}`,
     `Topic: ${payload.topic}`,
-    `Company: ${payload.company || "Not provided"}`,
-    `Team size: ${payload.teamSize || "Not provided"}`,
+    `Institution or organization: ${payload.company || "Not provided"}`,
+    `Group size: ${payload.teamSize || "Not provided"}`,
     "",
     payload.message,
   ].join("\n");
-  const confirmationSubject = "InkSphere: we received your message";
+  const confirmationSubject = "LexCircle: we received your message";
   const confirmationText = [
     `Hi ${payload.name},`,
     "",
-    "Thanks for contacting InkSphere. Your message has been received and queued for review.",
+    "Thanks for contacting LexCircle. Your message has been received and queued for review by our law community team.",
     `Topic: ${payload.topic}`,
     `Submitted email: ${payload.email}`,
     "",
@@ -55,7 +55,7 @@ export async function sendContactEmail(payload: ContactFormValues) {
     payload.message,
     "",
     "We will follow up as soon as possible.",
-    "InkSphere Team",
+    "LexCircle Team",
   ].join("\n");
 
   if (isResendConfigured()) {
@@ -141,10 +141,13 @@ export async function sendContactEmail(payload: ContactFormValues) {
     };
   }
 
-  console.info("Contact email skipped: no Resend or SMTP configuration found.", {
-    subject: adminSubject,
-    replyTo: payload.email,
-  });
+  console.info(
+    "Contact email skipped: no Resend or SMTP configuration found.",
+    {
+      subject: adminSubject,
+      replyTo: payload.email,
+    },
+  );
   return {
     provider: "none" as const,
     adminDelivered: false,

@@ -1,15 +1,24 @@
 import { SectionHeading } from "@/components/layout/section-heading";
+import { getLegalFormatCopy } from "@/constants/legal-writing";
 import { ArticleEditorForm } from "@/components/editor/article-editor-form";
 
-export default function NewArticlePage() {
+export default async function NewArticlePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const kind = typeof params.kind === "string" ? params.kind : undefined;
+  const copy = getLegalFormatCopy(kind);
+
   return (
     <div className="space-y-8">
       <SectionHeading
-        eyebrow="New article"
-        title="Write in a draft-safe editor with autosave and preview"
-        description="This editor keeps local autosave active immediately and posts draft saves to the article API."
+        eyebrow="New draft"
+        title={copy.title}
+        description={`${copy.description} Every submission enters admin review before it appears in your approved writing workspace.`}
       />
-      <ArticleEditorForm />
+      <ArticleEditorForm initialKind={kind} />
     </div>
   );
 }
