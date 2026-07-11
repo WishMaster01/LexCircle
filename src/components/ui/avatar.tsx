@@ -1,15 +1,22 @@
 import Image from "next/image";
-import { initials } from "@/lib/utils";
+import { cn, initials } from "@/lib/utils";
 
 export function Avatar({
   name,
   image,
+  className,
 }: {
   name: string;
   image?: string | null;
+  className?: string;
 }) {
   return (
-    <div className="flex size-10 items-center justify-center rounded-full border border-border/80 bg-secondary/10 text-sm font-semibold text-secondary">
+    <div
+      className={cn(
+        "flex size-10 items-center justify-center rounded-full border border-border/80 bg-secondary/10 text-sm font-semibold text-secondary",
+        className,
+      )}
+    >
       {image ? (
         <Image
           src={image}

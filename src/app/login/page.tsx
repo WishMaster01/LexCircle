@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { loginSchema } from "@/lib/validations/auth";
@@ -15,6 +18,7 @@ type LoginValues = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -46,7 +50,7 @@ export default function LoginPage() {
           <SectionHeading
             eyebrow="Login"
             title="Sign in to your legal writing workspace"
-            description="Access your drafts, case notes, bookmarks, approval history, and community activity from one place."
+            description="Access your drafts, case analysis, bookmarks, approval history, and community activity from one place."
           />
           <div className="mt-6 grid gap-3">
             {[
@@ -77,18 +81,38 @@ export default function LoginPage() {
             placeholder="Email"
             className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
           />
-          <input
-            {...form.register("password")}
-            type="password"
-            placeholder="Password"
-            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
-          />
+          <div className="relative">
+            <input
+              {...form.register("password")}
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 pr-12 outline-none focus:ring-4 focus:ring-ring"
+            />
+            <button
+              type="button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              onClick={() => setShowPassword((value) => !value)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
+            >
+              {showPassword ? (
+                <EyeOff className="size-4" />
+              ) : (
+                <Eye className="size-4" />
+              )}
+            </button>
+          </div>
           <button
             type="submit"
             className="w-full rounded-full bg-accent px-4 py-3 text-sm font-medium text-white"
           >
             Sign in
           </button>
+          <p className="text-sm text-muted">
+            Need the admin portal?{" "}
+            <Link href="/admin/login" className="font-medium text-accent">
+              Go to admin login
+            </Link>
+          </p>
         </form>
       </div>
     </div>

@@ -16,7 +16,7 @@ export default function AboutPage() {
             </p>
             <p className="mt-2">
               Drafts, revisions, approval states, and writing history are built
-              around case notes, legal blogs, articles, and research papers.
+              around case analysis, legal blogs, articles, notes, and research papers.
             </p>
           </div>
           <div className="rounded-2xl border border-border/80 bg-background/70 p-4">

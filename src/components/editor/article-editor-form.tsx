@@ -156,6 +156,7 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        documentType: values.contentType,
         title: values.title,
         subtitle: values.subtitle,
         excerpt: values.excerpt,
@@ -206,7 +207,7 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
 
           <input
             {...form.register("title")}
-            placeholder="Title of your legal article, blog, case note, or research paper"
+            placeholder="Title of your legal blog, article, case analysis, research paper, notes, or legal news post"
             className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 text-3xl font-semibold outline-none focus:ring-4 focus:ring-ring"
           />
           <input
@@ -355,7 +356,7 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
               className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-white"
             >
               <Save className="size-4" />
-              Submit for approval
+              Publish for review
             </button>
           </div>
         </div>

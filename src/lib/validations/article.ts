@@ -11,6 +11,7 @@ const coverImageSchema = z
   );
 
 export const articleSchema = z.object({
+  documentType: z.string().min(1).max(80),
   title: z.string().min(10).max(160),
   subtitle: z.string().max(200).optional().or(z.literal("")),
   excerpt: z.string().min(30).max(320),

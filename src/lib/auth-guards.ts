@@ -32,11 +32,11 @@ export async function requireUserPageSession() {
   return session;
 }
 
-export async function requireAdminPageSession() {
+export async function requireAdminPageSession(signInPath = "/login") {
   const session = await getAuthSession();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect(signInPath);
   }
 
   if (!isPortalAdminSession(session)) {

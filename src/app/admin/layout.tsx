@@ -5,7 +5,7 @@ export default async function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  await requireAdminPageSession();
+  await requireAdminPageSession("/admin/login");
 
   return children;
 }

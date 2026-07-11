@@ -20,11 +20,11 @@ export default async function MyArticlesPage() {
           title="Drafts, published posts, and archived work"
         />
         <Link
-          href="/dashboard/articles/new"
+          href="/write"
           className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-white"
         >
           <Plus className="size-4" />
-          New article
+          Write
         </Link>
       </div>
       <div className="rounded-3xl border border-border/80 bg-card/80 p-4 text-sm text-muted">

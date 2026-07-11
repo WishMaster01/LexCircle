@@ -18,24 +18,34 @@ export const dynamic = "force-dynamic";
 
 const startOptions = [
   {
-    label: "Article",
-    text: "Doctrine-focused long-form legal writing.",
-    href: "/dashboard/articles/new?kind=article",
-  },
-  {
     label: "Blog",
     text: "Short legal commentary and current updates.",
-    href: "/dashboard/articles/new?kind=blog",
+    href: "/write?kind=blog",
   },
   {
-    label: "Case Note",
+    label: "Article",
+    text: "Doctrine-focused long-form legal writing.",
+    href: "/write?kind=article",
+  },
+  {
+    label: "Case Analysis",
     text: "Judgment breakdown with issues, reasoning, and impact.",
-    href: "/dashboard/articles/new?kind=case-note",
+    href: "/write?kind=case-analysis",
   },
   {
     label: "Research Paper",
     text: "Academic legal writing for seminar, journal, or dissertation work.",
-    href: "/dashboard/articles/new?kind=research-paper",
+    href: "/write?kind=research-paper",
+  },
+  {
+    label: "Notes",
+    text: "Compact legal notes for classes, revision, and exam preparation.",
+    href: "/write?kind=notes",
+  },
+  {
+    label: "Legal News",
+    text: "Timely updates on cases, courts, statutes, and regulation.",
+    href: "/write?kind=legal-news",
   },
 ] as const;
 
@@ -78,7 +88,7 @@ export default async function DashboardPage() {
             Workspace focus
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            Move between pending drafts, case notes, research work, and recent
+            Move between pending drafts, case analysis, research work, and recent
             edits from one law-focused writing workspace.
           </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -231,7 +241,7 @@ export default async function DashboardPage() {
         ) : (
           <div className="rounded-3xl border border-border/80 bg-card/80 p-5 text-sm text-muted">
             No drafts or approved submissions yet. Use the Start menu to create
-            your first legal article, blog, case note, or research paper.
+            your first legal post.
           </div>
         )}
       </div>

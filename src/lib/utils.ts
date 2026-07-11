@@ -17,6 +17,14 @@ export function formatRelativeDate(value: Date | string) {
   return formatDistanceToNow(new Date(value), { addSuffix: true });
 }
 
+export function formatDisplayDate(value: Date | string) {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
 export function initials(name: string) {
   return name
     .split(" ")

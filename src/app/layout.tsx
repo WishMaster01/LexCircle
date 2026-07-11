@@ -9,7 +9,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(appConfig.url),
   title: {
-    default: `${appConfig.name} | Community Publishing Platform`,
+    default: `${appConfig.name} | Law Student Community`,
     template: `%s | ${appConfig.name}`,
   },
   description: appConfig.description,

@@ -1,6 +1,6 @@
-import { SectionHeading } from "@/components/layout/section-heading";
 import { ArticleCard } from "@/components/articles/article-card";
-import { demoCategories, demoTags } from "@/constants/demo-data";
+import { SectionHeading } from "@/components/layout/section-heading";
+import { demoCategories } from "@/constants/demo-data";
 import { legalWritingFormats } from "@/constants/legal-writing";
 import { getOptionalAuthSession } from "@/lib/auth-guards";
 import { getUserArticleInteractionMap } from "@/services/article-engagement-service";
@@ -8,7 +8,7 @@ import { listCommunityArticles } from "@/services/article-service";
 
 export const dynamic = "force-dynamic";
 
-export default async function CommunityPage({
+export default async function LatestPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -19,14 +19,12 @@ export default async function CommunityPage({
   const category =
     typeof params.category === "string" ? params.category : undefined;
   const type = typeof params.type === "string" ? params.type : undefined;
-  const tag = typeof params.tag === "string" ? params.tag : undefined;
-  const sort = typeof params.sort === "string" ? params.sort : "trending";
+  const sort = typeof params.sort === "string" ? params.sort : "latest";
 
   const articles = await listCommunityArticles({
     query,
     category,
     type,
-    tag,
     sort: sort as
       | "latest"
       | "oldest"
@@ -43,42 +41,42 @@ export default async function CommunityPage({
   return (
     <div className="space-y-8">
       <SectionHeading
-        eyebrow="Community"
-        title="Published legal writing from the entire platform"
-        description="Search, filter, and rank legal articles, case analysis, blogs, notes, and research writing with transparent discovery rules."
+        eyebrow="Latest"
+        title="Latest legal posts across all subjects and formats"
+        description="Filter by subject, document type, or sort order without leaving the main latest feed."
       />
 
       <form className="rounded-[1.75rem] border border-border/80 bg-card/80 p-4 sm:p-5">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_repeat(4,minmax(0,0.68fr))]">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,0.72fr))]">
           <div className="space-y-2 md:col-span-2 xl:col-span-1">
             <label
-              htmlFor="community-query"
+              htmlFor="latest-query"
               className="text-sm font-medium text-foreground"
             >
               Search
             </label>
             <input
-              id="community-query"
+              id="latest-query"
               name="query"
               defaultValue={query}
-              placeholder="Search by title, author, tag..."
+              placeholder="Search by title, author, issue, or tag..."
               className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
             />
           </div>
           <div className="space-y-2">
             <label
-              htmlFor="community-category"
+              htmlFor="latest-category"
               className="text-sm font-medium text-foreground"
             >
               Subject
             </label>
             <select
-              id="community-category"
+              id="latest-category"
               name="category"
               defaultValue={category}
               className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none"
             >
-              <option value="">All categories</option>
+              <option value="">All</option>
               {demoCategories.map((item) => (
                 <option key={item.id} value={item.slug}>
                   {item.name}
@@ -88,18 +86,18 @@ export default async function CommunityPage({
           </div>
           <div className="space-y-2">
             <label
-              htmlFor="community-type"
+              htmlFor="latest-type"
               className="text-sm font-medium text-foreground"
             >
               Type
             </label>
             <select
-              id="community-type"
+              id="latest-type"
               name="type"
               defaultValue={type}
               className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none"
             >
-              <option value="">All types</option>
+              <option value="">All</option>
               {legalWritingFormats.map((item) => (
                 <option key={item.value} value={item.value}>
                   {item.label}
@@ -109,51 +107,26 @@ export default async function CommunityPage({
           </div>
           <div className="space-y-2">
             <label
-              htmlFor="community-sort"
+              htmlFor="latest-sort"
               className="text-sm font-medium text-foreground"
             >
               Sort
             </label>
             <select
-              id="community-sort"
+              id="latest-sort"
               name="sort"
               defaultValue={sort}
               className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none"
             >
-              <option value="trending">Trending</option>
               <option value="latest">Latest</option>
-              <option value="oldest">Oldest</option>
               <option value="most-viewed">Most Read</option>
               <option value="most-liked">Most Liked</option>
-              <option value="most-commented">Most commented</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label
-              htmlFor="community-tag"
-              className="text-sm font-medium text-foreground"
-            >
-              Tag
-            </label>
-            <select
-              id="community-tag"
-              name="tag"
-              defaultValue={tag}
-              className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none"
-            >
-              <option value="">All tags</option>
-              {demoTags.map((item) => (
-                <option key={item.id} value={item.slug}>
-                  {item.name}
-                </option>
-              ))}
             </select>
           </div>
         </div>
         <div className="mt-4 flex flex-col gap-3 rounded-3xl border border-border/70 bg-background/60 p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted">
-            Use filters to narrow the feed without losing ranked discovery
-            context.
+            Use the latest feed for cross-subject reading and quick legal discovery.
           </p>
           <button
             type="submit"
@@ -172,16 +145,16 @@ export default async function CommunityPage({
               article={{
                 ...article,
                 coverImage: article.coverImage ?? null,
-                publishedAt: article.publishedAt,
                 initialLiked: interactionMap.get(article.id)?.liked ?? false,
-                initialBookmarked: interactionMap.get(article.id)?.bookmarked ?? false,
+                initialBookmarked:
+                  interactionMap.get(article.id)?.bookmarked ?? false,
               }}
             />
           ))}
         </div>
       ) : (
         <div className="rounded-4xl border border-border/80 bg-card/80 p-6 text-sm text-muted">
-          No community posts match the current filters yet.
+          No posts match the current filters yet.
         </div>
       )}
     </div>

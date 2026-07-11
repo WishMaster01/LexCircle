@@ -53,7 +53,7 @@ export default function RegisterPage() {
           <div className="mt-6 grid gap-3">
             {[
               "Claim a public legal author profile and username.",
-              "Start case notes, blogs, and research drafts immediately after registration.",
+              "Start case analysis, blogs, notes, and research drafts immediately after registration.",
               "Keep submission history and approval state tied to your account.",
             ].map((item) => (
               <div

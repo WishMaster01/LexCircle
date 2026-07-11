@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   const articles = await listCommunityArticles({
     query: searchParams.get("query") ?? undefined,
     category: searchParams.get("category") ?? undefined,
+    type: searchParams.get("type") ?? undefined,
     tag: searchParams.get("tag") ?? undefined,
     sort:
       (searchParams.get("sort") as

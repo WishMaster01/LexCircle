@@ -1,8 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import { TrendingUp } from "lucide-react";
+import { Eye } from "lucide-react";
 import { ArticleEngagementControls } from "@/components/articles/article-engagement-controls";
-import { formatCompactNumber, formatRelativeDate } from "@/lib/utils";
+import {
+  getDocumentTypeLabel,
+  inferDocumentType,
+  isDocumentTypeTag,
+} from "@/constants/legal-writing";
+import { formatCompactNumber, formatDisplayDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 type ArticleCardArticle = {
@@ -13,23 +18,29 @@ type ArticleCardArticle = {
   coverImage: string | null;
   publishedAt: string | Date | null;
   updatedAt?: string | Date;
+  readingTime: number;
   viewCount: number;
   likeCount: number;
   commentCount: number;
   bookmarkCount: number;
   category: {
     name: string;
+    slug?: string;
   } | null;
-  tags: Array<{ id: string; name: string } | { tag: { id: string; name: string } }>;
+  tags: Array<{ id: string; name: string; slug?: string } | { tag: { id: string; name: string; slug?: string } }>;
   author: {
     name: string;
   };
+  documentType?: string | null;
   initialLiked?: boolean;
   initialBookmarked?: boolean;
 };
 
 export function ArticleCard({ article }: { article: ArticleCardArticle }) {
-  const normalizedTags = article.tags.map((tag) => ("tag" in tag ? tag.tag : tag));
+  const normalizedTags = article.tags
+    .map((tag) => ("tag" in tag ? tag.tag : tag))
+    .filter((tag) => !isDocumentTypeTag(tag));
+  const documentType = inferDocumentType(article);
 
   return (
     <article className="overflow-hidden rounded-[1.75rem] border border-border/80 bg-card/85 shadow-[0_16px_60px_rgba(22,21,20,0.06)]">
@@ -43,13 +54,16 @@ export function ArticleCard({ article }: { article: ArticleCardArticle }) {
         />
       </div>
       <div className="space-y-4 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Badge variant="secondary">{article.category?.name ?? "Article"}</Badge>
-          <div className="flex items-center gap-1 text-xs text-muted">
-            <TrendingUp className="size-3.5" />
-            {formatCompactNumber(article.viewCount)} views
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-medium text-muted">
+            {article.category?.name ?? "Miscellaneous"} • {getDocumentTypeLabel(documentType)}
+          </p>
+          <span className="inline-flex items-center gap-1 text-xs text-muted">
+            <Eye className="size-3.5" />
+            {formatCompactNumber(article.viewCount)}
+          </span>
         </div>
+
         <div className="space-y-2">
           <Link
             href={`/article/${article.slug}`}
@@ -57,19 +71,28 @@ export function ArticleCard({ article }: { article: ArticleCardArticle }) {
           >
             {article.title}
           </Link>
-          <p className="text-sm text-muted">{article.excerpt ?? "No excerpt available yet."}</p>
+          <p className="text-sm text-muted">
+            {article.excerpt ?? "No excerpt available yet."}
+          </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {normalizedTags.map((tag) => (
-            <Badge key={tag.id} variant="secondary" className="normal-case tracking-normal">
-              #{tag.name}
-            </Badge>
-          ))}
-        </div>
-        <div className="flex flex-col gap-3 border-t border-border/80 pt-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-          <div>
+
+        {normalizedTags.length ? (
+          <div className="flex flex-wrap gap-2">
+            {normalizedTags.slice(0, 3).map((tag) => (
+              <Badge key={tag.id} variant="secondary" className="normal-case tracking-normal">
+                #{tag.name}
+              </Badge>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="space-y-3 border-t border-border/80 pt-4 text-sm text-muted">
+          <div className="space-y-1">
             <p className="font-medium text-foreground">{article.author.name}</p>
-            <p>{formatRelativeDate(article.publishedAt ?? article.updatedAt ?? new Date())}</p>
+            <p>
+              {article.readingTime} min read •{" "}
+              {formatDisplayDate(article.publishedAt ?? article.updatedAt ?? new Date())}
+            </p>
           </div>
           <ArticleEngagementControls
             articleId={article.id}

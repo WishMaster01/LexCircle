@@ -8,7 +8,7 @@ export function AppFooter() {
         <div>
           <p className="font-semibold tracking-[-0.03em]">LexCircle</p>
           <p className="text-sm text-muted">
-            Legal writing and discussion for law student communities.
+            Law student writing, discussion, and legal publishing.
           </p>
         </div>
         <nav className="flex flex-wrap gap-3 text-sm text-muted">

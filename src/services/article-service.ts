@@ -7,6 +7,11 @@ import {
   UserRole,
 } from "@prisma/client";
 import { demoArticles, demoAuthors, demoCategories, demoTags } from "@/constants/demo-data";
+import {
+  getDocumentTypeLabel,
+  getDocumentTypeTagSlug,
+  inferDocumentType,
+} from "@/constants/legal-writing";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { estimateReadingTime } from "@/lib/algorithms/reading-time";
@@ -17,6 +22,7 @@ import { canTransitionArticle } from "@/lib/algorithms/state-transitions";
 type CommunityQuery = {
   query?: string;
   category?: string;
+  type?: string;
   tag?: string;
   sort?: "latest" | "oldest" | "most-viewed" | "most-liked" | "most-commented" | "trending";
 };
@@ -120,6 +126,13 @@ function getDemoCommunityArticles(query: CommunityQuery = {}) {
 
   if (query.category) {
     articles = articles.filter((article) => article.category.slug === query.category);
+  }
+
+  if (query.type) {
+    const type = getDocumentTypeTagSlug(query.type);
+    articles = articles.filter(
+      (article) => inferDocumentType(article) === type,
+    );
   }
 
   if (query.tag) {
@@ -267,7 +280,6 @@ export async function listCommunityArticles(query: CommunityQuery = {}) {
       visibility: ArticleVisibility.PUBLIC,
       deletedAt: null,
       ...(query.category ? { category: { slug: query.category } } : {}),
-      ...(query.tag ? { tags: { some: { tag: { slug: query.tag } } } } : {}),
       ...(query.query
         ? {
             OR: [
@@ -275,6 +287,54 @@ export async function listCommunityArticles(query: CommunityQuery = {}) {
               { excerpt: { contains: query.query, mode: "insensitive" } },
               { author: { name: { contains: query.query, mode: "insensitive" } } },
               { tags: { some: { tag: { name: { contains: query.query, mode: "insensitive" } } } } },
+            ],
+          }
+        : {}),
+      ...(query.type || query.tag
+        ? {
+            AND: [
+              ...(query.type
+                ? [
+                    {
+                      tags: {
+                        some: {
+                          tag: {
+                            OR: [
+                              {
+                                slug: {
+                                  equals: getDocumentTypeTagSlug(query.type),
+                                  mode: "insensitive" as const,
+                                },
+                              },
+                              {
+                                name: {
+                                  equals: getDocumentTypeLabel(query.type),
+                                  mode: "insensitive" as const,
+                                },
+                              },
+                            ],
+                          },
+                        },
+                      },
+                    },
+                  ]
+                : []),
+              ...(query.tag
+                ? [
+                    {
+                      tags: {
+                        some: {
+                          tag: {
+                            slug: {
+                              equals: query.tag,
+                              mode: "insensitive" as const,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ]
+                : []),
             ],
           }
         : {}),
@@ -558,11 +618,16 @@ export async function createArticle(input: {
   content: string;
   coverImage?: string;
   categoryId: string;
+  documentType: string;
   tags: string[];
 }) {
   const sanitizedContent = sanitizeContent(input.content);
   const { readingTime, wordCount } = estimateReadingTime(input.content);
   const baseSlug = slugify(input.title);
+  const tags = [
+    getDocumentTypeLabel(input.documentType),
+    ...input.tags,
+  ].filter((tag, index, source) => source.indexOf(tag) === index);
 
   if (!isDatabaseConfigured()) {
     const slug = resolveSlugCollision(baseSlug, new Set(demoArticles.map((article) => article.slug)));
@@ -577,6 +642,7 @@ export async function createArticle(input: {
       coverImage: input.coverImage ?? null,
       readingTime,
       wordCount,
+      documentType: input.documentType,
       status: ArticleStatus.DRAFT,
       approvalStatus: ArticleApprovalStatus.PENDING,
       submittedAt: new Date().toISOString(),
@@ -585,7 +651,7 @@ export async function createArticle(input: {
 
   const [categoryId, tagIds] = await Promise.all([
     resolveCategoryId(input.categoryId),
-    resolveTagIds(input.tags),
+    resolveTagIds(tags),
   ]);
   const existingSlugs = new Set((await prisma.article.findMany({ select: { slug: true } })).map((article) => article.slug));
   const slug = resolveSlugCollision(baseSlug, existingSlugs);

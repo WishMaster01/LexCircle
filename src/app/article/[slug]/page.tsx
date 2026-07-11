@@ -1,12 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Share2 } from "lucide-react";
 import { ArticleEngagementControls } from "@/components/articles/article-engagement-controls";
+import { ArticleShareActions } from "@/components/articles/article-share-actions";
 import { ArticleCommentsPanel } from "@/components/comments/article-comments-panel";
 import { Badge } from "@/components/ui/badge";
+import {
+  getDocumentTypeLabel,
+  inferDocumentType,
+  isDocumentTypeTag,
+} from "@/constants/legal-writing";
 import { getOptionalAuthSession } from "@/lib/auth-guards";
-import { formatRelativeDate } from "@/lib/utils";
+import { formatDisplayDate, formatRelativeDate } from "@/lib/utils";
 import { getUserArticleInteractionMap } from "@/services/article-engagement-service";
 import { getArticleBySlug } from "@/services/article-service";
 
@@ -27,8 +32,11 @@ export default async function ArticlePage({
 
   const tags =
     "tags" in article && Array.isArray(article.tags)
-      ? article.tags.map((tag) => ("tag" in tag ? tag.tag : tag))
+      ? article.tags
+          .map((tag) => ("tag" in tag ? tag.tag : tag))
+          .filter((tag) => !isDocumentTypeTag(tag))
       : [];
+  const documentType = inferDocumentType(article);
   const interactionMap = await getUserArticleInteractionMap([article.id], session?.user.id);
   const interactionState = interactionMap.get(article.id) ?? {
     liked: false,
@@ -66,8 +74,12 @@ export default async function ArticlePage({
         <div className="space-y-5 sm:space-y-6">
           <div className="space-y-4">
             <Badge>
-              {("category" in article && article.category?.name) || "Article"}
+              {("category" in article && article.category?.name) || "Miscellaneous"}
             </Badge>
+            <p className="text-sm font-medium text-muted">
+              {(("category" in article && article.category?.name) || "Miscellaneous")} •{" "}
+              {getDocumentTypeLabel(documentType)}
+            </p>
             <h1 className="max-w-4xl text-3xl font-semibold tracking-tighter sm:text-4xl lg:text-5xl">
               {article.title}
             </h1>
@@ -81,9 +93,12 @@ export default async function ArticlePage({
               {("author" in article && article.author.name) || "Unknown author"}
             </span>
             <span>
-              {formatRelativeDate(article.publishedAt ?? article.updatedAt)}
+              {formatDisplayDate(article.publishedAt ?? article.updatedAt)}
             </span>
             <span>{article.readingTime} min read</span>
+            <span>
+              Updated {formatRelativeDate(article.updatedAt)}
+            </span>
           </div>
           <div className="relative h-60 overflow-hidden rounded-[1.75rem] border border-border/80 sm:h-80 lg:h-105">
             <Image
@@ -125,10 +140,15 @@ export default async function ArticlePage({
                 initialBookmarked={interactionState.bookmarked}
                 commentHref="#comments"
               />
-              <span className="inline-flex items-center justify-center gap-2 rounded-full bg-background/80 px-3 py-2">
-                <Share2 className="size-4" />
-                Share
-              </span>
+              <ArticleShareActions
+                title={article.title}
+                slug={article.slug}
+                content={
+                  ("sanitizedContent" in article
+                    ? article.sanitizedContent
+                    : article.content) ?? article.content
+                }
+              />
             </div>
           </div>
           <div className="rounded-3xl border border-border/80 bg-card/80 p-4 sm:p-5">
