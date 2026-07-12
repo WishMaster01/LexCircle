@@ -9,15 +9,29 @@ import { ImagePlus, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { debounce } from "@/lib/algorithms/debounce";
 import { legalCategories, legalWritingFormats } from "@/constants/legal-writing";
+import {
+  countWords,
+  getPlainTextFromHtml,
+  RichTextEditor,
+} from "@/components/editor/rich-text-editor";
 
 const editorDraftKey = "lexcircle-legal-editor-draft";
 
 const editorSchema = z.object({
   title: z.string().min(10, "Title should be at least 10 characters.").max(160),
+  hook: z
+    .string()
+    .min(20, "Hook should be at least 20 characters.")
+    .refine((value) => countWords(value) <= 100, "Hook should be 100 words or fewer."),
   categoryId: z.string().min(1, "Select a subject."),
   contentType: z.string().min(1, "Select a document type."),
   coverImage: z.string().optional().or(z.literal("")),
-  content: z.string().min(50, "Content should be at least 50 characters."),
+  content: z
+    .string()
+    .refine(
+      (value) => getPlainTextFromHtml(value).length >= 50,
+      "Content should be at least 50 characters.",
+    ),
   tags: z.string().min(1, "Add at least one tag."),
 });
 
@@ -25,16 +39,13 @@ type EditorValues = z.infer<typeof editorSchema>;
 
 const emptyValues: EditorValues = {
   title: "",
+  hook: "",
   categoryId: "",
   contentType: "",
   coverImage: "",
   content: "",
   tags: "",
 };
-
-function buildExcerpt(content: string) {
-  return content.replace(/\s+/g, " ").trim().slice(0, 320);
-}
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -55,6 +66,10 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
   });
 
   const coverImage = form.watch("coverImage");
+  const hook = form.watch("hook");
+  const content = form.watch("content");
+  const contentWordCount = countWords(content);
+  const hookWordCount = countWords(hook);
 
   const autosave = useMemo(
     () =>
@@ -145,7 +160,7 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
         documentType: values.contentType,
         title: values.title,
         subtitle: "",
-        excerpt: buildExcerpt(values.content),
+        excerpt: values.hook,
         content: values.content,
         coverImage: values.coverImage,
         categoryId: values.categoryId,
@@ -189,37 +204,56 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground">Subject</label>
-          <select
-            {...form.register("categoryId")}
-            className="mt-2 w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
-          >
-            <option value="">Select a subject</option>
-            {legalCategories.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.label}
-              </option>
-            ))}
-          </select>
-          <FieldError message={errors.categoryId?.message} />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label className="text-sm font-medium text-foreground">Hook</label>
+            <span className="text-xs text-muted">{hookWordCount}/100 words</span>
+          </div>
+          <textarea
+            {...form.register("hook")}
+            placeholder="Write a short hook or summary. This appears on the homepage and in search results."
+            rows={4}
+            className="mt-2 w-full rounded-3xl border border-border/80 bg-background/80 px-4 py-4 text-sm outline-none focus:ring-4 focus:ring-ring"
+          />
+          <p className="mt-2 text-xs text-muted">
+            This short summary appears on the homepage and in search results.
+          </p>
+          <FieldError message={errors.hook?.message} />
         </div>
 
-        <div>
-          <label className="text-sm font-medium text-foreground">
-            Document Type
-          </label>
-          <select
-            {...form.register("contentType")}
-            className="mt-2 w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
-          >
-            <option value="">Select a document type</option>
-            {legalWritingFormats.map((format) => (
-              <option key={format.value} value={format.value}>
-                {format.label}
-              </option>
-            ))}
-          </select>
-          <FieldError message={errors.contentType?.message} />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div>
+            <label className="text-sm font-medium text-foreground">Subject</label>
+            <select
+              {...form.register("categoryId")}
+              className="mt-2 w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+            >
+              <option value="">Select a subject</option>
+              {legalCategories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+            <FieldError message={errors.categoryId?.message} />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-foreground">
+              Document Type
+            </label>
+            <select
+              {...form.register("contentType")}
+              className="mt-2 w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+            >
+              <option value="">Select a document type</option>
+              {legalWritingFormats.map((format) => (
+                <option key={format.value} value={format.value}>
+                  {format.label}
+                </option>
+              ))}
+            </select>
+            <FieldError message={errors.contentType?.message} />
+          </div>
         </div>
 
         <div>
@@ -269,13 +303,21 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-foreground">Content</label>
-          <textarea
-            {...form.register("content")}
-            placeholder="Write your legal content here"
-            rows={18}
-            className="mt-2 w-full rounded-3xl border border-border/80 bg-background/80 px-4 py-4 text-sm outline-none focus:ring-4 focus:ring-ring"
-          />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label className="text-sm font-medium text-foreground">Content</label>
+            <span className="text-xs text-muted">{contentWordCount} words</span>
+          </div>
+          <div className="mt-2">
+            <RichTextEditor
+              value={content}
+              onChange={(value) =>
+                form.setValue("content", value, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+              }
+            />
+          </div>
           <FieldError message={errors.content?.message} />
         </div>
 

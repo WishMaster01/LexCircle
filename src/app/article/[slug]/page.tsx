@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Clock3, Eye, FileText, Layers3 } from "lucide-react";
 import { ArticleEngagementControls } from "@/components/articles/article-engagement-controls";
 import { ArticleShareActions } from "@/components/articles/article-share-actions";
 import { ArticleCommentsPanel } from "@/components/comments/article-comments-panel";
@@ -11,11 +12,36 @@ import {
   isDocumentTypeTag,
 } from "@/constants/legal-writing";
 import { getOptionalAuthSession } from "@/lib/auth-guards";
-import { formatDisplayDate, formatRelativeDate } from "@/lib/utils";
+import {
+  formatCompactNumber,
+  formatDisplayDate,
+  formatRelativeDate,
+} from "@/lib/utils";
 import { getUserArticleInteractionMap } from "@/services/article-engagement-service";
 import { getArticleBySlug } from "@/services/article-service";
 
 export const dynamic = "force-dynamic";
+
+function extractHeadings(html: string) {
+  const headings = [...html.matchAll(/<h([1-3])[^>]*>(.*?)<\/h\1>/gi)];
+
+  return headings
+    .map((heading, index) => ({
+      id: `section-${index + 1}`,
+      level: Number(heading[1]),
+      text: heading[2].replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim(),
+    }))
+    .filter((heading) => heading.text.length > 0);
+}
+
+function injectHeadingIds(html: string) {
+  let headingIndex = 0;
+
+  return html.replace(/<h([1-3])([^>]*)>/gi, (_match, level, attributes) => {
+    headingIndex += 1;
+    return `<h${level}${attributes} id="section-${headingIndex}">`;
+  });
+}
 
 export default async function ArticlePage({
   params,
@@ -30,6 +56,11 @@ export default async function ArticlePage({
     notFound();
   }
 
+  const renderedContent =
+    ("sanitizedContent" in article ? article.sanitizedContent : article.content) ??
+    article.content;
+  const contentWithAnchors = injectHeadingIds(renderedContent);
+  const outline = extractHeadings(renderedContent);
   const tags =
     "tags" in article && Array.isArray(article.tags)
       ? article.tags
@@ -37,7 +68,10 @@ export default async function ArticlePage({
           .filter((tag) => !isDocumentTypeTag(tag))
       : [];
   const documentType = inferDocumentType(article);
-  const interactionMap = await getUserArticleInteractionMap([article.id], session?.user.id);
+  const interactionMap = await getUserArticleInteractionMap(
+    [article.id],
+    session?.user.id,
+  );
   const interactionState = interactionMap.get(article.id) ?? {
     liked: false,
     bookmarked: false,
@@ -70,65 +104,146 @@ export default async function ArticlePage({
 
   return (
     <div className="space-y-8 sm:space-y-10">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:gap-8">
-        <div className="space-y-5 sm:space-y-6">
-          <div className="space-y-4">
-            <Badge>
-              {("category" in article && article.category?.name) || "Miscellaneous"}
-            </Badge>
-            <p className="text-sm font-medium text-muted">
-              {(("category" in article && article.category?.name) || "Miscellaneous")} •{" "}
-              {getDocumentTypeLabel(documentType)}
-            </p>
-            <h1 className="max-w-4xl text-3xl font-semibold tracking-tighter sm:text-4xl lg:text-5xl">
-              {article.title}
-            </h1>
-            <p className="max-w-3xl text-base leading-7 text-muted sm:text-lg">
-              {article.excerpt}
-            </p>
+      <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8 lg:p-10">
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.15fr)_22rem]">
+          <div className="space-y-6">
+            <div className="flex flex-wrap gap-2">
+              <Badge>{article.category?.name || "Miscellaneous"}</Badge>
+              <Badge variant="secondary">{getDocumentTypeLabel(documentType)}</Badge>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted">
+                LexCircle Publication
+              </p>
+              <h1 className="max-w-4xl text-3xl font-semibold tracking-tighter sm:text-4xl lg:text-5xl">
+                {article.title}
+              </h1>
+              <div className="rounded-[1.5rem] border border-border/80 bg-background/70 p-4 sm:p-5">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted">
+                  Hook
+                </p>
+                <p className="mt-3 max-w-3xl text-base leading-7 text-foreground/85 sm:text-lg">
+                  {article.excerpt}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-3xl border border-border/80 bg-background/70 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                  Author
+                </p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  {("author" in article && article.author.name) || "Unknown author"}
+                </p>
+              </div>
+              <div className="rounded-3xl border border-border/80 bg-background/70 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                  Published
+                </p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  {formatDisplayDate(article.publishedAt ?? article.updatedAt)}
+                </p>
+              </div>
+              <div className="rounded-3xl border border-border/80 bg-background/70 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                  Reading Time
+                </p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  {article.readingTime} min read
+                </p>
+              </div>
+              <div className="rounded-3xl border border-border/80 bg-background/70 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                  Updated
+                </p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  {formatRelativeDate(article.updatedAt)}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col gap-2 rounded-3xl border border-border/80 bg-card/70 p-4 text-sm text-muted sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 sm:bg-transparent sm:p-0">
-            <span className="font-medium text-foreground">
-              By{" "}
-              {("author" in article && article.author.name) || "Unknown author"}
-            </span>
-            <span>
-              {formatDisplayDate(article.publishedAt ?? article.updatedAt)}
-            </span>
-            <span>{article.readingTime} min read</span>
-            <span>
-              Updated {formatRelativeDate(article.updatedAt)}
-            </span>
-          </div>
-          <div className="relative h-60 overflow-hidden rounded-[1.75rem] border border-border/80 sm:h-80 lg:h-105">
-            <Image
-              src={article.coverImage ?? "/globe.svg"}
-              alt={article.title}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 92vw, 65vw"
-              className="object-cover"
-            />
-          </div>
-          <div
-            className="prose-article rounded-[1.75rem] border border-border/80 bg-card/80 p-4 sm:p-6 lg:p-8"
+
+          <aside className="space-y-4">
+            <div className="rounded-[1.5rem] border border-border/80 bg-background/70 p-5">
+              <p className="text-sm font-medium text-muted">Article facts</p>
+              <div className="mt-4 space-y-4 text-sm text-muted">
+                <div className="flex items-center gap-3">
+                  <FileText className="size-4 text-accent" />
+                  <span>{getDocumentTypeLabel(documentType)}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock3 className="size-4 text-accent" />
+                  <span>{article.readingTime} min read</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Eye className="size-4 text-accent" />
+                  <span>{formatCompactNumber(article.viewCount)} views</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Layers3 className="size-4 text-accent" />
+                  <span>{article.category?.name ?? "Miscellaneous"}</span>
+                </div>
+              </div>
+            </div>
+
+            {outline.length ? (
+              <div className="rounded-[1.5rem] border border-border/80 bg-background/70 p-5">
+                <p className="text-sm font-medium text-muted">In this article</p>
+                <div className="mt-4 space-y-2">
+                  {outline.map((item) => (
+                    <a
+                      key={item.id}
+                      href={`#${item.id}`}
+                      className="block text-sm text-foreground/80 hover:text-accent"
+                      style={{ paddingLeft: `${(item.level - 1) * 0.75}rem` }}
+                    >
+                      {item.text}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </aside>
+        </div>
+
+        <div className="relative mt-8 h-64 overflow-hidden rounded-[1.75rem] border border-border/80 sm:h-80 lg:h-[28rem]">
+          <Image
+            src={article.coverImage ?? "/globe.svg"}
+            alt={article.title}
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-8">
+        <div className="space-y-6">
+          <section
+            className="prose-article rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-6 lg:p-8"
             dangerouslySetInnerHTML={{
-              __html:
-                ("sanitizedContent" in article
-                  ? article.sanitizedContent
-                  : article.content) ?? article.content,
+              __html: contentWithAnchors,
             }}
           />
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <Badge key={tag.id} variant="secondary">
-                #{tag.name}
-              </Badge>
-            ))}
-          </div>
+
+          {tags.length ? (
+            <section className="rounded-[1.75rem] border border-border/80 bg-card/80 p-5">
+              <p className="text-sm font-medium text-muted">Tags</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <Badge key={tag.id} variant="secondary">
+                    #{tag.name}
+                  </Badge>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-28 lg:self-start">
-          <div className="rounded-3xl border border-border/80 bg-card/80 p-4 sm:p-5">
+          <div className="rounded-[1.5rem] border border-border/80 bg-card/80 p-4 sm:p-5">
             <p className="text-sm font-medium text-muted">Engagement</p>
             <div className="mt-4 grid gap-3 text-sm">
               <ArticleEngagementControls
@@ -143,15 +258,12 @@ export default async function ArticlePage({
               <ArticleShareActions
                 title={article.title}
                 slug={article.slug}
-                content={
-                  ("sanitizedContent" in article
-                    ? article.sanitizedContent
-                    : article.content) ?? article.content
-                }
+                content={renderedContent}
               />
             </div>
           </div>
-          <div className="rounded-3xl border border-border/80 bg-card/80 p-4 sm:p-5">
+
+          <div className="rounded-[1.5rem] border border-border/80 bg-card/80 p-4 sm:p-5">
             <p className="text-sm font-medium text-muted">Author</p>
             <p className="mt-2 text-xl font-semibold">
               {("author" in article && article.author.name) || "Unknown"}

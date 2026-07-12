@@ -164,7 +164,14 @@ function getDemoCommunityArticles(query: CommunityQuery = {}) {
 
 function sanitizeContent(content: string) {
   return sanitizeHtml(content, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "h1", "h2", "h3", "h4"]),
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+      "img",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "u",
+    ]),
     allowedAttributes: {
       a: ["href", "target", "rel"],
       img: ["src", "alt"],

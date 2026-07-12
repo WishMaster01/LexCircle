@@ -27,7 +27,9 @@ type ArticleCardArticle = {
     name: string;
     slug?: string;
   } | null;
-  tags: Array<{ id: string; name: string; slug?: string } | { tag: { id: string; name: string; slug?: string } }>;
+  tags: Array<
+    { id: string; name: string; slug?: string } | { tag: { id: string; name: string; slug?: string } }
+  >;
   author: {
     name: string;
   };
