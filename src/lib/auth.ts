@@ -82,7 +82,7 @@ export const authOptions: NextAuthOptions = {
       : []),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.username = (user as { username?: string | null }).username ?? null;
         token.role = (user as { role?: UserRole }).role ?? UserRole.USER;
@@ -90,11 +90,27 @@ export const authOptions: NextAuthOptions = {
         token.isPortalAdmin = (user as { isPortalAdmin?: boolean }).isPortalAdmin ?? false;
       }
 
+      if (trigger === "update" && session) {
+        if (typeof session.name === "string") {
+          token.name = session.name;
+        }
+        if ("image" in session) {
+          token.picture = typeof session.image === "string" ? session.image : null;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? "";
+        session.user.name = typeof token.name === "string" ? token.name : session.user.name;
+        session.user.image =
+          token.picture === null
+            ? null
+            : typeof token.picture === "string"
+              ? token.picture
+              : session.user.image;
         session.user.username = (token.username as string | null | undefined) ?? null;
         session.user.role = (token.role as UserRole | undefined) ?? UserRole.USER;
         session.user.isSuspended = (token.isSuspended as boolean | undefined) ?? false;

@@ -12,6 +12,7 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get("file");
+  const requestedPurpose = formData.get("purpose");
 
   if (!(file instanceof File)) {
     return errorResponse("Image file is required.", 400);
@@ -27,13 +28,20 @@ export async function POST(request: Request) {
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const dataUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
-  const publicId = `article-cover-${Date.now()}`;
+  const purpose =
+    requestedPurpose === UploadPurpose.PROFILE_IMAGE
+      ? UploadPurpose.PROFILE_IMAGE
+      : UploadPurpose.ARTICLE_COVER;
+  const publicId =
+    purpose === UploadPurpose.PROFILE_IMAGE
+      ? `profile-image-${Date.now()}`
+      : `article-cover-${Date.now()}`;
 
   if (isDatabaseConfigured()) {
     await prisma.upload.create({
       data: {
         userId: auth.session.user.id,
-        purpose: UploadPurpose.ARTICLE_COVER,
+        purpose,
         url: dataUrl,
         publicId,
       },

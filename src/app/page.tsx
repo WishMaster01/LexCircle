@@ -5,7 +5,7 @@ import { SectionHeading } from "@/components/layout/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button-link";
 import { demoAuthors } from "@/constants/demo-data";
-import { inferDocumentType, legalCategories } from "@/constants/legal-writing";
+import { inferDocumentType } from "@/constants/legal-writing";
 import { getOptionalAuthSession } from "@/lib/auth-guards";
 import { getUserArticleInteractionMap } from "@/services/article-engagement-service";
 import { listCommunityArticles } from "@/services/article-service";
@@ -58,6 +58,10 @@ export default async function Home() {
     interactionIds,
     session?.user.id,
   );
+  const topAuthors = [
+    ...demoAuthors.filter((author) => author.username === "rahulkumar"),
+    ...demoAuthors.filter((author) => author.username !== "rahulkumar"),
+  ].slice(0, 4);
 
   return (
     <div className="space-y-12 sm:space-y-16 lg:space-y-20">
@@ -86,48 +90,21 @@ export default async function Home() {
           </div>
         </div>
 
-        <div className="space-y-4 rounded-[1.75rem] border border-border/80 bg-background/70 p-4 sm:p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted">Search</p>
-              <p className="mt-1 text-sm text-muted">
-                Find posts by title, author, issue, or tag.
-              </p>
-            </div>
-            <Search className="size-4 text-accent" />
-          </div>
-          <form action="/latest" className="space-y-3">
+        <div className="rounded-[1.75rem] border border-border/80 bg-background/70 p-4 sm:p-5">
+          <form action="/latest" className="relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted" />
             <input
               name="query"
               placeholder="Search constitutional law, bail, arbitration, environmental law..."
-              className="w-full rounded-2xl border border-border/80 bg-card/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+              className="w-full rounded-full border border-border/80 bg-card/85 py-3 pl-11 pr-28 outline-none focus:ring-4 focus:ring-ring"
             />
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center rounded-full bg-accent px-4 py-3 text-sm font-medium text-white"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white"
             >
-              Search LexCircle
+              Search
             </button>
           </form>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {latestPosts.slice(0, 2).map((article) => (
-              <Link
-                key={article.id}
-                href={`/article/${article.slug}`}
-                className="rounded-2xl border border-border/80 bg-card/80 p-4 hover:-translate-y-0.5"
-              >
-                <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                  {article.category?.name}
-                </p>
-                <h2 className="mt-2 text-base font-semibold tracking-[-0.03em]">
-                  {article.title}
-                </h2>
-                <p className="mt-2 text-sm text-muted">
-                  {article.readingTime} min read
-                </p>
-              </Link>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -149,25 +126,6 @@ export default async function Home() {
                   interactionMap.get(article.id)?.bookmarked ?? false,
               }}
             />
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-6 rounded-4xl border border-border/80 bg-card/80 p-5 sm:p-8">
-        <SectionHeading
-          eyebrow="Popular Subjects"
-          title="Browse legal writing by subject."
-          description="Use subjects as your main entry point when you want to read within a field instead of browsing every type together."
-        />
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {legalCategories.map((category) => (
-            <Link
-              key={category.value}
-              href={`/subjects/${category.value}`}
-              className="rounded-2xl border border-border/80 bg-background/70 p-4 text-sm font-medium text-foreground hover:-translate-y-0.5"
-            >
-              {category.label}
-            </Link>
           ))}
         </div>
       </section>
@@ -244,7 +202,7 @@ export default async function Home() {
           title="Writers building visible legal portfolios."
         />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {demoAuthors.slice(0, 4).map((author) => (
+          {topAuthors.map((author) => (
             <Link
               key={author.id}
               href={`/author/${author.username}`}

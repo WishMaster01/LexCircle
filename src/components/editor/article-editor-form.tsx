@@ -5,55 +5,46 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, ImagePlus, Save, Upload } from "lucide-react";
+import { ImagePlus, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { debounce } from "@/lib/algorithms/debounce";
-import { estimateReadingTime } from "@/lib/algorithms/reading-time";
-import {
-  getLegalFormatCopy,
-  legalCategories,
-  legalWritingFormats,
-  suggestedLegalTags,
-} from "@/constants/legal-writing";
+import { legalCategories, legalWritingFormats } from "@/constants/legal-writing";
 
 const editorDraftKey = "lexcircle-legal-editor-draft";
 
 const editorSchema = z.object({
-  contentType: z.string().min(1, "Select a writing format."),
   title: z.string().min(10, "Title should be at least 10 characters.").max(160),
-  subtitle: z.string().max(200).optional().or(z.literal("")),
-  excerpt: z.string().min(30, "Write at least 30 characters for the abstract.").max(320),
-  content: z.string().min(50, "Writing content should be at least 50 characters."),
+  categoryId: z.string().min(1, "Select a subject."),
+  contentType: z.string().min(1, "Select a document type."),
   coverImage: z.string().optional().or(z.literal("")),
-  categoryId: z.string().min(1, "Select a legal category."),
-  primaryTag: z.string().min(1, "Add a primary tag."),
-  additionalTags: z.string().optional().or(z.literal("")),
-  seoTitle: z.string().max(160).optional().or(z.literal("")),
-  seoDescription: z.string().max(200).optional().or(z.literal("")),
-  canonicalUrl: z.string().url().optional().or(z.literal("")),
+  content: z.string().min(50, "Content should be at least 50 characters."),
+  tags: z.string().min(1, "Add at least one tag."),
 });
 
 type EditorValues = z.infer<typeof editorSchema>;
 
 const emptyValues: EditorValues = {
-  contentType: "",
   title: "",
-  subtitle: "",
-  excerpt: "",
-  content: "",
-  coverImage: "",
   categoryId: "",
-  primaryTag: "",
-  additionalTags: "",
-  seoTitle: "",
-  seoDescription: "",
-  canonicalUrl: "",
+  contentType: "",
+  coverImage: "",
+  content: "",
+  tags: "",
 };
+
+function buildExcerpt(content: string) {
+  return content.replace(/\s+/g, " ").trim().slice(0, 320);
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+
+  return <p className="mt-2 text-sm text-red-600">{message}</p>;
+}
 
 export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [preview, setPreview] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const form = useForm<EditorValues>({
     resolver: zodResolver(editorSchema),
@@ -63,12 +54,7 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
     },
   });
 
-  const selectedKind = form.watch("contentType");
-  const content = form.watch("content");
-  const title = form.watch("title");
   const coverImage = form.watch("coverImage");
-  const formatCopy = getLegalFormatCopy(selectedKind);
-  const metrics = useMemo(() => estimateReadingTime(content), [content]);
 
   const autosave = useMemo(
     () =>
@@ -97,8 +83,7 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
   useEffect(() => {
     if (!initialKind) return;
 
-    const current = form.getValues("contentType");
-    if (!current) {
+    if (!form.getValues("contentType")) {
       form.setValue("contentType", initialKind, { shouldDirty: false });
     }
   }, [form, initialKind]);
@@ -134,7 +119,10 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
         return;
       }
 
-      form.setValue("coverImage", result.data.url, { shouldDirty: true, shouldValidate: true });
+      form.setValue("coverImage", result.data.url, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
       toast.success("Cover image uploaded.");
     } catch {
       toast.error("Unable to upload image.");
@@ -144,13 +132,11 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
   }
 
   async function onSubmit(values: EditorValues) {
-    const tags = [
-      values.primaryTag.trim(),
-      ...(values.additionalTags ?? "")
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-    ].filter((tag, index, source) => source.indexOf(tag) === index);
+    const tags = values.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .filter((tag, index, source) => source.indexOf(tag) === index);
 
     const response = await fetch("/api/articles", {
       method: "POST",
@@ -158,15 +144,12 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
       body: JSON.stringify({
         documentType: values.contentType,
         title: values.title,
-        subtitle: values.subtitle,
-        excerpt: values.excerpt,
+        subtitle: "",
+        excerpt: buildExcerpt(values.content),
         content: values.content,
         coverImage: values.coverImage,
         categoryId: values.categoryId,
         tags,
-        seoTitle: values.seoTitle,
-        seoDescription: values.seoDescription,
-        canonicalUrl: values.canonicalUrl,
       }),
     });
 
@@ -185,80 +168,73 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
     router.push("/dashboard/history");
   }
 
-  return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <div className="grid gap-4 rounded-[1.75rem] border border-border/80 bg-card/80 p-5 sm:p-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="space-y-4">
-          <div className="rounded-3xl border border-border/80 bg-background/75 p-4">
-            <p className="text-sm font-medium text-muted">Writing format</p>
-            <select
-              {...form.register("contentType")}
-              className="mt-3 w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none"
-            >
-              <option value="">Select writing format</option>
-              {legalWritingFormats.map((format) => (
-                <option key={format.value} value={format.value}>
-                  {format.label}
-                </option>
-              ))}
-            </select>
-            <p className="mt-3 text-sm text-muted">{formatCopy.description}</p>
-          </div>
+  const {
+    formState: { errors },
+  } = form;
 
+  return (
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="rounded-[1.75rem] border border-border/80 bg-card/80 p-5 sm:p-6"
+    >
+      <div className="grid gap-6">
+        <div>
+          <label className="text-sm font-medium text-foreground">Title</label>
           <input
             {...form.register("title")}
-            placeholder="Title of your legal blog, article, case analysis, research paper, notes, or legal news post"
-            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 text-3xl font-semibold outline-none focus:ring-4 focus:ring-ring"
+            placeholder="Enter your legal writing title"
+            className="mt-2 w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
           />
-          <input
-            {...form.register("subtitle")}
-            placeholder="Subtitle or explanatory line"
-            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
-          />
-          <textarea
-            {...form.register("excerpt")}
-            placeholder="Abstract or short summary of the legal issue, argument, or judgment"
-            rows={4}
-            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
-          />
-          <textarea
-            {...form.register("content")}
-            placeholder="Write the full content here. You can draft legal arguments, case facts, issues, holdings, statutory interpretation, research sections, or conclusions."
-            rows={18}
-            className="w-full rounded-3xl border border-border/80 bg-background/80 px-4 py-4 text-sm outline-none focus:ring-4 focus:ring-ring"
-          />
-          {preview ? (
-            <div className="prose-article rounded-3xl border border-border/80 bg-background/80 p-6">
-              <h1>{title || formatCopy.title}</h1>
-              <p>{content || "Start writing to preview your legal draft."}</p>
-            </div>
-          ) : null}
+          <FieldError message={errors.title?.message} />
         </div>
 
-        <div className="space-y-4">
-          <div className="rounded-3xl border border-border/80 bg-background/80 p-4">
-            <p className="text-sm font-medium text-muted">Draft metrics</p>
-            <p className="mt-2 text-2xl font-semibold">{metrics.wordCount} words</p>
-            <p className="text-sm text-muted">{metrics.readingTime} min read</p>
-          </div>
+        <div>
+          <label className="text-sm font-medium text-foreground">Subject</label>
+          <select
+            {...form.register("categoryId")}
+            className="mt-2 w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+          >
+            <option value="">Select a subject</option>
+            {legalCategories.map((category) => (
+              <option key={category.value} value={category.value}>
+                {category.label}
+              </option>
+            ))}
+          </select>
+          <FieldError message={errors.categoryId?.message} />
+        </div>
 
-          <div className="rounded-3xl border border-border/80 bg-background/80 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-muted">Cover image</p>
-                <p className="mt-1 text-sm text-muted">
-                  Upload from your device or gallery instead of pasting a URL.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card px-4 py-3 text-sm font-medium"
-              >
-                <Upload className="size-4" />
-                {uploadingImage ? "Uploading..." : "Upload image"}
-              </button>
-            </div>
+        <div>
+          <label className="text-sm font-medium text-foreground">
+            Document Type
+          </label>
+          <select
+            {...form.register("contentType")}
+            className="mt-2 w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+          >
+            <option value="">Select a document type</option>
+            {legalWritingFormats.map((format) => (
+              <option key={format.value} value={format.value}>
+                {format.label}
+              </option>
+            ))}
+          </select>
+          <FieldError message={errors.contentType?.message} />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-foreground">
+            Cover Image (optional)
+          </label>
+          <div className="mt-2 rounded-3xl border border-border/80 bg-background/80 p-4">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card px-4 py-3 text-sm font-medium"
+            >
+              <Upload className="size-4" />
+              {uploadingImage ? "Uploading..." : "Upload cover image"}
+            </button>
             <input
               ref={fileInputRef}
               type="file"
@@ -271,94 +247,55 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
                 }
               }}
             />
+
             {coverImage ? (
               <div className="mt-4 overflow-hidden rounded-2xl border border-border/80">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={coverImage} alt="Cover preview" className="h-40 w-full object-cover" />
+                <img
+                  src={coverImage}
+                  alt="Cover preview"
+                  className="h-48 w-full object-cover"
+                />
               </div>
             ) : (
-              <div className="mt-4 flex h-32 items-center justify-center rounded-2xl border border-dashed border-border/80 text-sm text-muted">
+              <div className="mt-4 flex h-36 items-center justify-center rounded-2xl border border-dashed border-border/80 text-sm text-muted">
                 <span className="inline-flex items-center gap-2">
                   <ImagePlus className="size-4" />
-                  No cover image uploaded yet
+                  No cover image uploaded
                 </span>
               </div>
             )}
           </div>
+        </div>
 
-          <select
-            {...form.register("categoryId")}
-            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none"
+        <div>
+          <label className="text-sm font-medium text-foreground">Content</label>
+          <textarea
+            {...form.register("content")}
+            placeholder="Write your legal content here"
+            rows={18}
+            className="mt-2 w-full rounded-3xl border border-border/80 bg-background/80 px-4 py-4 text-sm outline-none focus:ring-4 focus:ring-ring"
+          />
+          <FieldError message={errors.content?.message} />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-foreground">Tags</label>
+          <input
+            {...form.register("tags")}
+            placeholder="constitutional law, precedent, bail, legal research"
+            className="mt-2 w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+          />
+          <FieldError message={errors.tags?.message} />
+        </div>
+
+        <div>
+          <button
+            type="submit"
+            className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-medium text-white"
           >
-            <option value="">Select legal category</option>
-            {legalCategories.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.label}
-              </option>
-            ))}
-          </select>
-
-          <input
-            {...form.register("primaryTag")}
-            placeholder="Primary tag"
-            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
-          />
-          <textarea
-            {...form.register("additionalTags")}
-            placeholder="Additional tags separated by commas"
-            rows={3}
-            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
-          />
-          <div className="rounded-3xl border border-border/80 bg-background/80 p-4">
-            <p className="text-sm font-medium text-muted">Suggested law tags</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {suggestedLegalTags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => form.setValue("primaryTag", tag, { shouldDirty: true })}
-                  className="rounded-full border border-border/80 bg-card px-3 py-1.5 text-xs font-medium text-muted hover:text-foreground"
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <input
-            {...form.register("seoTitle")}
-            placeholder="SEO title"
-            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
-          />
-          <textarea
-            {...form.register("seoDescription")}
-            placeholder="SEO description"
-            rows={4}
-            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
-          />
-          <input
-            {...form.register("canonicalUrl")}
-            placeholder="Canonical URL (optional)"
-            className="w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
-          />
-
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => setPreview((value) => !value)}
-              className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/80 px-4 py-3 text-sm font-medium"
-            >
-              <Eye className="size-4" />
-              {preview ? "Hide preview" : "Show preview"}
-            </button>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-white"
-            >
-              <Save className="size-4" />
-              Publish for review
-            </button>
-          </div>
+            Publish
+          </button>
         </div>
       </div>
     </form>

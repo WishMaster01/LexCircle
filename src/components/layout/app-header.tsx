@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useEffect, useMemo, useState } from "react";
+import { type MouseEvent, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import {
@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   MoonStar,
+  Shield,
   SunMedium,
   UserCircle2,
   X,
@@ -20,6 +21,11 @@ import { Avatar } from "@/components/ui/avatar";
 import { ButtonLink } from "@/components/ui/button-link";
 import { mainNav } from "@/constants/site";
 import { cn } from "@/lib/utils";
+
+type NavItem = {
+  href: string;
+  label: string;
+};
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -40,13 +46,13 @@ export function AppHeader() {
       { href: "/dashboard/profile", label: "Profile", icon: UserCircle2 },
       { href: "/dashboard/history", label: "My History", icon: History },
       ...(user?.isPortalAdmin
-        ? [{ href: "/admin", label: "Admin Center", icon: UserCircle2 }]
+        ? [{ href: "/admin", label: "Admin Center", icon: Shield }]
         : []),
     ],
     [user?.isPortalAdmin],
   );
 
-  const sharedMobileLinks = useMemo(
+  const mobileLinks = useMemo<NavItem[]>(
     () => [
       ...mainNav,
       ...(status === "authenticated"
@@ -66,23 +72,34 @@ export function AppHeader() {
     [status, user?.isPortalAdmin],
   );
 
-  function handleMobileNavigation(href: string) {
+  function isActive(href: string) {
+    return href === "/"
+      ? pathname === href
+      : pathname === href || pathname.startsWith(`${href}/`);
+  }
+
+  function closeMobileMenu() {
     setMobileMenuOpen(false);
-    startTransition(() => {
+  }
+
+  function handleMobileLinkClick(href: string) {
+    return (event: MouseEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      closeMobileMenu();
       router.push(href);
-    });
+    };
   }
 
   return (
-    <header className="sticky top-0 z-40 pt-4">
+    <header className="sticky top-0 z-50 pt-4">
       {mobileMenuOpen ? (
         <button
           type="button"
-          aria-label="Close menu overlay"
-          onClick={() => setMobileMenuOpen(false)}
+          aria-label="Close mobile menu overlay"
+          onClick={closeMobileMenu}
           className={cn(
-            "fixed inset-0 z-30 md:hidden",
-            isDarkTheme ? "bg-white/24" : "bg-slate-950/62",
+            "fixed inset-0 z-40 md:hidden",
+            isDarkTheme ? "bg-white/18" : "bg-slate-950/70",
           )}
         />
       ) : null}
@@ -110,9 +127,7 @@ export function AppHeader() {
                 href={item.href}
                 className={cn(
                   "rounded-full px-3 py-2 text-sm hover:bg-background/80",
-                  (item.href === "/"
-                    ? pathname === item.href
-                    : pathname === item.href || pathname.startsWith(`${item.href}/`))
+                  isActive(item.href)
                     ? "bg-background/90 text-foreground"
                     : "text-muted hover:text-foreground",
                 )}
@@ -126,12 +141,10 @@ export function AppHeader() {
             <button
               type="button"
               aria-label="Toggle theme"
-              onClick={() =>
-                setTheme(resolvedTheme === "dark" ? "light" : "dark")
-              }
+              onClick={() => setTheme(isDarkTheme ? "light" : "dark")}
               className="flex size-10 items-center justify-center rounded-full border border-border/80 bg-background/80 text-muted hover:text-foreground"
             >
-              {resolvedTheme === "dark" ? (
+              {isDarkTheme ? (
                 <SunMedium className="size-4" />
               ) : (
                 <MoonStar className="size-4" />
@@ -203,9 +216,9 @@ export function AppHeader() {
 
             <button
               type="button"
-              onClick={() => setMobileMenuOpen((open) => !open)}
               aria-expanded={mobileMenuOpen}
               aria-label="Toggle mobile menu"
+              onClick={() => setMobileMenuOpen((open) => !open)}
               className="flex size-10 items-center justify-center rounded-full border border-border/80 bg-background/80 md:hidden"
             >
               {mobileMenuOpen ? (
@@ -216,90 +229,81 @@ export function AppHeader() {
             </button>
           </div>
         </div>
+      </div>
 
-        {mobileMenuOpen ? (
-          <div
-            className={cn(
-              "absolute right-0 top-[calc(100%+0.75rem)] z-40 w-[min(88vw,22rem)] rounded-3xl p-3 shadow-[0_20px_70px_rgba(22,21,20,0.14)] backdrop-blur md:hidden",
-              isDarkTheme
-                ? "border border-slate-200/80 bg-white/95 text-slate-900"
-                : "border border-slate-800/80 bg-slate-950/95 text-slate-50",
-            )}
-          >
-            {status === "authenticated" && user ? (
-              <div
+      {mobileMenuOpen ? (
+        <div
+          className={cn(
+            "fixed inset-x-4 top-[5.25rem] z-50 rounded-[1.75rem] border p-4 shadow-[0_20px_70px_rgba(22,21,20,0.18)] backdrop-blur md:hidden",
+            isDarkTheme
+              ? "border-slate-200/90 bg-white/95 text-slate-900"
+              : "border-slate-800/90 bg-slate-950/95 text-slate-50",
+          )}
+        >
+          {status === "authenticated" && user ? (
+            <div
+              className={cn(
+                "mb-4 rounded-3xl border p-4",
+                isDarkTheme
+                  ? "border-slate-200 bg-slate-100/80"
+                  : "border-slate-800 bg-slate-900/80",
+              )}
+            >
+              <p className="font-semibold">{user.name}</p>
+              <p
                 className={cn(
-                  "mb-3 rounded-2xl p-4",
-                  isDarkTheme
-                    ? "border border-slate-200 bg-slate-100/80"
-                    : "border border-slate-800 bg-slate-900/80",
+                  "mt-1 text-sm",
+                  isDarkTheme ? "text-slate-600" : "text-slate-300",
                 )}
               >
-                <p className="font-semibold">{user.name}</p>
-                <p
-                  className={cn(
-                    "mt-1 text-sm",
-                    isDarkTheme ? "text-slate-600" : "text-slate-300",
-                  )}
-                >
-                  {user.email}
-                </p>
-                <p
-                  className={cn(
-                    "mt-2 text-xs uppercase tracking-[0.18em]",
-                    isDarkTheme ? "text-slate-500" : "text-slate-400",
-                  )}
-                >
-                  {user.role}
-                </p>
-              </div>
-            ) : null}
-            <div className="space-y-1">
-              {sharedMobileLinks.map((item) => (
-                <button
-                  key={item.href}
-                  type="button"
-                  onClick={() => handleMobileNavigation(item.href)}
-                  className={cn(
-                    "flex w-full items-center rounded-2xl px-4 py-3 text-left text-sm transition-colors",
-                    isDarkTheme
-                      ? "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
-                      : "text-slate-200 hover:bg-white/10 hover:text-white",
-                    (item.href === "/"
-                      ? pathname === item.href
-                      : pathname === item.href ||
-                        pathname.startsWith(`${item.href}/`))
-                      ? isDarkTheme
-                        ? "bg-slate-100 text-slate-950"
-                        : "bg-white/10 text-white"
-                      : "",
-                  )}
-                >
-                  {item.label}
-                </button>
-              ))}
-              {status === "authenticated" ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    void signOut({ callbackUrl: "/" });
-                  }}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm transition-colors",
-                    isDarkTheme
-                      ? "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
-                      : "text-slate-200 hover:bg-white/10 hover:text-white",
-                  )}
-                >
-                  <LogOut className="size-4" />
-                  Logout
-                </button>
-              ) : null}
+                {user.email}
+              </p>
             </div>
-          </div>
-        ) : null}
-      </div>
+          ) : null}
+
+          <nav className="grid gap-2">
+            {mobileLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={handleMobileLinkClick(item.href)}
+                className={cn(
+                  "rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+                  isDarkTheme
+                    ? "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                    : "text-slate-200 hover:bg-white/10 hover:text-white",
+                  isActive(item.href)
+                    ? isDarkTheme
+                      ? "bg-slate-100 text-slate-950"
+                      : "bg-white/10 text-white"
+                    : "",
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            {status === "authenticated" ? (
+              <button
+                type="button"
+                onClick={() => {
+                  closeMobileMenu();
+                  void signOut({ callbackUrl: "/" });
+                }}
+                className={cn(
+                  "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+                  isDarkTheme
+                    ? "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                    : "text-slate-200 hover:bg-white/10 hover:text-white",
+                )}
+              >
+                <LogOut className="size-4" />
+                Logout
+              </button>
+            ) : null}
+          </nav>
+        </div>
+      ) : null}
     </header>
   );
 }

@@ -79,8 +79,8 @@ export const demoAuthors: DemoAuthor[] = [
     id: "u2",
     name: "Rahul Kumar",
     username: "rahulkumar",
-    bio: "Focuses on criminal procedure, evidence, and issue-based legal writing for students.",
-    followers: 1260,
+    bio: "Writes on criminal law, evidence, bail jurisprudence, and practical legal writing for student researchers.",
+    followers: 2140,
     joinedAt: "2025-10-02T00:00:00.000Z",
   },
   {
