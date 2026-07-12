@@ -68,6 +68,8 @@ function buildFallbackProfile(user: SessionProfileUser) {
           status: ArticleStatus.PUBLISHED,
           approvalStatus: ArticleApprovalStatus.APPROVED,
           updatedAt: article.updatedAt,
+          reviewedAt: article.updatedAt,
+          reviewFeedback: "Approved by admin and now published on LexCircle.",
           createdAt: article.updatedAt,
           category: {
             name: article.category.name,
@@ -168,6 +170,8 @@ export async function getCurrentUserProfile(user: SessionProfileUser) {
             slug: true,
             status: true,
             approvalStatus: true,
+            reviewedAt: true,
+            reviewFeedback: true,
             updatedAt: true,
             createdAt: true,
             category: {

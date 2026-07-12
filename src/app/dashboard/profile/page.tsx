@@ -189,7 +189,20 @@ export default async function ProfilePage() {
                     <FileText className="size-5 text-accent" />
                   </div>
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted">
-                    <span>Updated {formatRelativeDate(post.updatedAt)}</span>
+                    <div className="space-y-1">
+                      <span className="block">
+                        Updated {formatRelativeDate(post.updatedAt)}
+                      </span>
+                      {post.reviewedAt ? (
+                        <span className="block text-xs">
+                          Admin message:{" "}
+                          {post.reviewFeedback ||
+                            (post.approvalStatus === "APPROVED"
+                              ? "Approved and published on LexCircle."
+                              : "Needs revision before approval.")}
+                        </span>
+                      ) : null}
+                    </div>
                     <Link
                       href={
                         post.approvalStatus === "APPROVED"

@@ -226,7 +226,20 @@ export default async function DashboardPage() {
                   ) : null}
                 </div>
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border/80 pt-4 text-sm text-muted">
-                  <span>Updated {formatRelativeDate(article.updatedAt)}</span>
+                  <div className="space-y-1">
+                    <span className="block">
+                      Updated {formatRelativeDate(article.updatedAt)}
+                    </span>
+                    {article.reviewedAt ? (
+                      <span className="block text-xs">
+                        Admin message:{" "}
+                        {article.reviewFeedback ||
+                          (article.approvalStatus === "APPROVED"
+                            ? "Approved and published on LexCircle."
+                            : "Needs revision before approval.")}
+                      </span>
+                    ) : null}
+                  </div>
                   <Link
                     href="/dashboard/history"
                     className="inline-flex items-center gap-2 font-medium text-accent"

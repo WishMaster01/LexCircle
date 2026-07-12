@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   AlertTriangle,
+  ArrowRight,
   BarChart3,
   Mailbox,
   ShieldCheck,
@@ -99,6 +100,13 @@ export default async function AdminPage() {
                         )}
                       </span>
                     </div>
+                    <Link
+                      href={`/admin/articles/${article.id}`}
+                      className="inline-flex items-center gap-2 text-sm font-medium text-accent"
+                    >
+                      Review full article
+                      <ArrowRight className="size-4" />
+                    </Link>
                   </div>
                   <ArticleApprovalActions articleId={article.id} />
                 </div>

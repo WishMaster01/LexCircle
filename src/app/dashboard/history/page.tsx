@@ -12,8 +12,17 @@ function getHistoryMessage(
     return "Waiting for admin approval before this article moves into your approved dashboard list.";
   }
 
+  if (approvalStatus === "APPROVED") {
+    return (
+      reviewFeedback ||
+      "Approved by admin and now available in the public LexCircle feed."
+    );
+  }
+
   if (approvalStatus === "REJECTED") {
-    return reviewFeedback || "Admin requested revisions before approval.";
+    return (
+      reviewFeedback || "Admin requested revisions before approval."
+    );
   }
 
   return "Approved by admin and available inside your article workspace.";
@@ -81,8 +90,20 @@ export default async function HistoryPage() {
                 </span>
               </div>
               <p className="mt-2 text-sm text-muted">
-                {getHistoryMessage(item.approvalStatus, item.reviewFeedback)}
+                {item.approvalStatus === "PENDING"
+                  ? "This submission is still waiting for admin review."
+                  : item.approvalStatus === "REJECTED"
+                    ? "This submission was returned for revision."
+                    : "This submission has been approved and moved forward."}
               </p>
+              {item.reviewedAt ? (
+                <div className="mt-3 rounded-2xl border border-border/80 bg-background/70 p-3 text-sm text-muted">
+                  <span className="font-medium text-foreground">
+                    Admin message:
+                  </span>{" "}
+                  {getHistoryMessage(item.approvalStatus, item.reviewFeedback)}
+                </div>
+              ) : null}
               <p className="mt-3 text-sm text-foreground/80">{item.excerpt}</p>
             </div>
           ))}

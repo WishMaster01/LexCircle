@@ -571,6 +571,32 @@ export async function listPendingArticleApprovals() {
   });
 }
 
+export async function getAdminArticleSubmissionById(id: string) {
+  if (!isDatabaseConfigured()) {
+    return getDemoWorkflowArticles().find((article) => article.id === id) ?? null;
+  }
+
+  return prisma.article.findUnique({
+    where: { id },
+    include: {
+      author: true,
+      category: true,
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
+      reviewedBy: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+}
+
 export async function getArticleApprovalSummary() {
   if (!isDatabaseConfigured()) {
     const articles = getDemoWorkflowArticles();
@@ -685,12 +711,26 @@ export async function reviewArticleSubmission(input: {
   decision: Extract<ArticleApprovalStatus, "APPROVED" | "REJECTED">;
   reviewFeedback?: string | null;
 }) {
+  const normalizedFeedback =
+    input.reviewFeedback?.trim() ||
+    (input.decision === ArticleApprovalStatus.APPROVED
+      ? "Approved by admin and now published on LexCircle."
+      : "This submission needs revision before it can be approved.");
+
   if (!isDatabaseConfigured()) {
     return {
       id: input.articleId,
       approvalStatus: input.decision,
       reviewedAt: new Date().toISOString(),
-      reviewFeedback: input.reviewFeedback ?? null,
+      reviewFeedback: normalizedFeedback,
+      status:
+        input.decision === ArticleApprovalStatus.APPROVED
+          ? ArticleStatus.PUBLISHED
+          : ArticleStatus.DRAFT,
+      publishedAt:
+        input.decision === ArticleApprovalStatus.APPROVED
+          ? new Date().toISOString()
+          : null,
     };
   }
 
@@ -700,8 +740,15 @@ export async function reviewArticleSubmission(input: {
       approvalStatus: input.decision,
       reviewedAt: new Date(),
       reviewedById: input.reviewerId ?? null,
-      reviewFeedback: input.reviewFeedback ?? null,
-      status: ArticleStatus.DRAFT,
+      reviewFeedback: normalizedFeedback,
+      status:
+        input.decision === ArticleApprovalStatus.APPROVED
+          ? ArticleStatus.PUBLISHED
+          : ArticleStatus.DRAFT,
+      publishedAt:
+        input.decision === ArticleApprovalStatus.APPROVED ? new Date() : null,
+      archivedAt: null,
+      deletedAt: null,
     },
     include: articleListInclude,
   });
