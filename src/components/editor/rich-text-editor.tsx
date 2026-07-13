@@ -136,7 +136,7 @@ export function RichTextEditor({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2 rounded-3xl border border-border/80 bg-card/80 p-3">
+      <div className="sticky top-24 z-20 flex flex-wrap gap-2 rounded-3xl border border-border/80 bg-card/92 p-3 shadow-[0_12px_32px_rgba(22,21,20,0.08)] backdrop-blur">
         <ToolbarButton
           label="Bold"
           active={editor?.isActive("bold")}
@@ -232,7 +232,9 @@ export function RichTextEditor({
           <Redo2 className="size-4" />
         </ToolbarButton>
       </div>
-      <EditorContent editor={editor} />
+      <div className="rounded-[1.75rem] border border-border/80 bg-card/55 p-3">
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 }

@@ -57,6 +57,9 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [draftState, setDraftState] = useState<"idle" | "saving" | "saved">(
+    "idle",
+  );
   const form = useForm<EditorValues>({
     resolver: zodResolver(editorSchema),
     defaultValues: {
@@ -74,7 +77,9 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
   const autosave = useMemo(
     () =>
       debounce((values: EditorValues) => {
+        setDraftState("saving");
         localStorage.setItem(editorDraftKey, JSON.stringify(values));
+        setDraftState("saved");
       }, 800),
     [],
   );
@@ -193,12 +198,32 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
       className="rounded-[1.75rem] border border-border/80 bg-card/80 p-5 sm:p-6"
     >
       <div className="grid gap-6">
+        <div className="rounded-[1.5rem] border border-border/80 bg-background/70 p-4 sm:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Drafting workspace
+              </p>
+              <p className="mt-1 text-sm text-muted">
+                Write in a structured flow and keep your legal argument clear from the first paragraph.
+              </p>
+            </div>
+            <div className="rounded-full border border-border/80 bg-card px-3 py-2 text-xs font-medium text-muted">
+              {draftState === "saving"
+                ? "Saving draft..."
+                : draftState === "saved"
+                  ? "Draft saved locally"
+                  : "Autosave enabled"}
+            </div>
+          </div>
+        </div>
+
         <div>
           <label className="text-sm font-medium text-foreground">Title</label>
           <input
             {...form.register("title")}
             placeholder="Enter your legal writing title"
-            className="mt-2 w-full rounded-2xl border border-border/80 bg-background/80 px-4 py-3 outline-none focus:ring-4 focus:ring-ring"
+            className="mt-2 w-full rounded-3xl border border-border/80 bg-background/80 px-4 py-4 text-lg font-semibold outline-none focus:ring-4 focus:ring-ring"
           />
           <FieldError message={errors.title?.message} />
         </div>
@@ -212,7 +237,7 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
             {...form.register("hook")}
             placeholder="Write a short hook or summary. This appears on the homepage and in search results."
             rows={4}
-            className="mt-2 w-full rounded-3xl border border-border/80 bg-background/80 px-4 py-4 text-sm outline-none focus:ring-4 focus:ring-ring"
+            className="mt-2 w-full rounded-3xl border border-border/80 bg-background/80 px-4 py-4 text-sm leading-7 outline-none focus:ring-4 focus:ring-ring"
           />
           <p className="mt-2 text-xs text-muted">
             This short summary appears on the homepage and in search results.
@@ -307,6 +332,9 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
             <label className="text-sm font-medium text-foreground">Content</label>
             <span className="text-xs text-muted">{contentWordCount} words</span>
           </div>
+          <p className="mt-2 text-sm text-muted">
+            Use the toolbar for headings, quotes, lists, links, and code blocks while keeping the article readable for legal research and blog readers.
+          </p>
           <div className="mt-2">
             <RichTextEditor
               value={content}
@@ -332,12 +360,18 @@ export function ArticleEditorForm({ initialKind }: { initialKind?: string }) {
         </div>
 
         <div>
-          <button
-            type="submit"
-            className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-medium text-white"
-          >
-            Publish
-          </button>
+          <div className="sticky bottom-4 z-20 flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-border/80 bg-card/92 p-4 shadow-[0_12px_32px_rgba(22,21,20,0.08)] backdrop-blur">
+            <div className="text-sm text-muted">
+              <p>{contentWordCount} words in content</p>
+              <p className="mt-1">Your submission still goes through admin approval before publication.</p>
+            </div>
+            <button
+              type="submit"
+              className="inline-flex rounded-full bg-accent px-5 py-3 text-sm font-medium text-white"
+            >
+              Publish
+            </button>
+          </div>
         </div>
       </div>
     </form>

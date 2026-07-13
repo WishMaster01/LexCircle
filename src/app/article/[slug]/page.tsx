@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Clock3, Eye, FileText, Layers3 } from "lucide-react";
+import { Eye, FileText, Layers3, RefreshCcw } from "lucide-react";
 import { ArticleEngagementControls } from "@/components/articles/article-engagement-controls";
 import { ArticleShareActions } from "@/components/articles/article-share-actions";
 import { ArticleCommentsPanel } from "@/components/comments/article-comments-panel";
@@ -104,32 +104,101 @@ export default async function ArticlePage({
 
   return (
     <div className="space-y-8 sm:space-y-10">
-      <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8 lg:p-10">
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.15fr)_22rem]">
-          <div className="space-y-6">
+      <article className="space-y-6">
+        <div className="relative h-64 overflow-hidden rounded-[2rem] border border-border/80 bg-card/80 sm:h-80 lg:h-[30rem]">
+          <Image
+            src={article.coverImage ?? "/globe.svg"}
+            alt={article.title}
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+        </div>
+
+        <section className="rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-8 lg:p-10">
+          <div className="space-y-5">
             <div className="flex flex-wrap gap-2">
               <Badge>{article.category?.name || "Miscellaneous"}</Badge>
               <Badge variant="secondary">{getDocumentTypeLabel(documentType)}</Badge>
             </div>
 
-            <div className="space-y-4">
-              <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted">
-                LexCircle Publication
+            <h1 className="max-w-4xl text-3xl font-semibold tracking-tighter sm:text-4xl lg:text-5xl">
+              {article.title}
+            </h1>
+
+            <div className="rounded-[1.5rem] border border-border/80 bg-background/70 p-4 sm:p-5">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted">
+                Hook
               </p>
-              <h1 className="max-w-4xl text-3xl font-semibold tracking-tighter sm:text-4xl lg:text-5xl">
-                {article.title}
-              </h1>
-              <div className="rounded-[1.5rem] border border-border/80 bg-background/70 p-4 sm:p-5">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted">
-                  Hook
-                </p>
-                <p className="mt-3 max-w-3xl text-base leading-7 text-foreground/85 sm:text-lg">
-                  {article.excerpt}
-                </p>
-              </div>
+              <p className="mt-3 max-w-3xl text-base leading-7 text-foreground/85 sm:text-lg">
+                {article.excerpt}
+              </p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {outline.length ? (
+              <div className="rounded-[1.5rem] border border-border/80 bg-background/70 p-4 sm:p-5">
+                <p className="text-sm font-medium text-muted">In this article</p>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {outline.map((item) => (
+                    <a
+                      key={item.id}
+                      href={`#${item.id}`}
+                      className="text-sm text-foreground/80 hover:text-accent"
+                      style={{ paddingLeft: `${(item.level - 1) * 0.75}rem` }}
+                    >
+                      {item.text}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        <section
+          className="prose-article rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-6 lg:p-10"
+          dangerouslySetInnerHTML={{
+            __html: contentWithAnchors,
+          }}
+        />
+
+        {tags.length ? (
+          <section className="rounded-[1.75rem] border border-border/80 bg-card/80 p-5">
+            <p className="text-sm font-medium text-muted">Tags</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <Badge key={tag.id} variant="secondary">
+                  #{tag.name}
+                </Badge>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.9fr)]">
+          <div className="rounded-[1.75rem] border border-border/80 bg-card/80 p-5 sm:p-6">
+            <p className="text-sm font-medium text-muted">Engagement</p>
+            <div className="mt-4 grid gap-3 text-sm">
+              <ArticleEngagementControls
+                articleId={article.id}
+                commentCount={article.commentCount}
+                initialLikeCount={article.likeCount}
+                initialBookmarkCount={article.bookmarkCount}
+                initialLiked={interactionState.liked}
+                initialBookmarked={interactionState.bookmarked}
+                commentHref="#comments"
+              />
+              <ArticleShareActions
+                title={article.title}
+                slug={article.slug}
+                content={renderedContent}
+              />
+            </div>
+          </div>
+
+          <div className="rounded-[1.75rem] border border-border/80 bg-card/80 p-5 sm:p-6">
+            <p className="text-sm font-medium text-muted">Publication details</p>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div className="rounded-3xl border border-border/80 bg-background/70 p-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-muted">
                   Author
@@ -163,125 +232,46 @@ export default async function ArticlePage({
                 </p>
               </div>
             </div>
-          </div>
 
-          <aside className="space-y-4">
-            <div className="rounded-[1.5rem] border border-border/80 bg-background/70 p-5">
-              <p className="text-sm font-medium text-muted">Article facts</p>
-              <div className="mt-4 space-y-4 text-sm text-muted">
-                <div className="flex items-center gap-3">
-                  <FileText className="size-4 text-accent" />
-                  <span>{getDocumentTypeLabel(documentType)}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Clock3 className="size-4 text-accent" />
-                  <span>{article.readingTime} min read</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Eye className="size-4 text-accent" />
-                  <span>{formatCompactNumber(article.viewCount)} views</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Layers3 className="size-4 text-accent" />
-                  <span>{article.category?.name ?? "Miscellaneous"}</span>
-                </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div className="flex items-center gap-3 rounded-3xl border border-border/80 bg-background/70 p-4 text-sm text-muted">
+                <FileText className="size-4 text-accent" />
+                <span>{getDocumentTypeLabel(documentType)}</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-3xl border border-border/80 bg-background/70 p-4 text-sm text-muted">
+                <Layers3 className="size-4 text-accent" />
+                <span>{article.category?.name ?? "Miscellaneous"}</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-3xl border border-border/80 bg-background/70 p-4 text-sm text-muted">
+                <Eye className="size-4 text-accent" />
+                <span>{formatCompactNumber(article.viewCount)} views</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-3xl border border-border/80 bg-background/70 p-4 text-sm text-muted">
+                <RefreshCcw className="size-4 text-accent" />
+                <span>Updated {formatRelativeDate(article.updatedAt)}</span>
               </div>
             </div>
 
-            {outline.length ? (
-              <div className="rounded-[1.5rem] border border-border/80 bg-background/70 p-5">
-                <p className="text-sm font-medium text-muted">In this article</p>
-                <div className="mt-4 space-y-2">
-                  {outline.map((item) => (
-                    <a
-                      key={item.id}
-                      href={`#${item.id}`}
-                      className="block text-sm text-foreground/80 hover:text-accent"
-                      style={{ paddingLeft: `${(item.level - 1) * 0.75}rem` }}
-                    >
-                      {item.text}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </aside>
-        </div>
-
-        <div className="relative mt-8 h-64 overflow-hidden rounded-[1.75rem] border border-border/80 sm:h-80 lg:h-[28rem]">
-          <Image
-            src={article.coverImage ?? "/globe.svg"}
-            alt={article.title}
-            fill
-            sizes="100vw"
-            className="object-cover"
-          />
-        </div>
-      </section>
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-8">
-        <div className="space-y-6">
-          <section
-            className="prose-article rounded-[2rem] border border-border/80 bg-card/80 p-5 sm:p-6 lg:p-8"
-            dangerouslySetInnerHTML={{
-              __html: contentWithAnchors,
-            }}
-          />
-
-          {tags.length ? (
-            <section className="rounded-[1.75rem] border border-border/80 bg-card/80 p-5">
-              <p className="text-sm font-medium text-muted">Tags</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <Badge key={tag.id} variant="secondary">
-                    #{tag.name}
-                  </Badge>
-                ))}
-              </div>
-            </section>
-          ) : null}
-        </div>
-
-        <aside className="space-y-4 lg:sticky lg:top-28 lg:self-start">
-          <div className="rounded-[1.5rem] border border-border/80 bg-card/80 p-4 sm:p-5">
-            <p className="text-sm font-medium text-muted">Engagement</p>
-            <div className="mt-4 grid gap-3 text-sm">
-              <ArticleEngagementControls
-                articleId={article.id}
-                commentCount={article.commentCount}
-                initialLikeCount={article.likeCount}
-                initialBookmarkCount={article.bookmarkCount}
-                initialLiked={interactionState.liked}
-                initialBookmarked={interactionState.bookmarked}
-                commentHref="#comments"
-              />
-              <ArticleShareActions
-                title={article.title}
-                slug={article.slug}
-                content={renderedContent}
-              />
+            <div className="mt-5 rounded-[1.5rem] border border-border/80 bg-background/70 p-4 sm:p-5">
+              <p className="text-sm font-medium text-muted">About the author</p>
+              <p className="mt-2 text-lg font-semibold text-foreground">
+                {("author" in article && article.author.name) || "Unknown"}
+              </p>
+              <p className="mt-2 text-sm text-muted">
+                {"author" in article && "bio" in article.author
+                  ? article.author.bio
+                  : "Writes for the legal community."}
+              </p>
+              <Link
+                href={`/author/${("author" in article && article.author.username) || ""}`}
+                className="mt-4 inline-block text-sm font-medium text-accent"
+              >
+                View public profile
+              </Link>
             </div>
           </div>
-
-          <div className="rounded-[1.5rem] border border-border/80 bg-card/80 p-4 sm:p-5">
-            <p className="text-sm font-medium text-muted">Author</p>
-            <p className="mt-2 text-xl font-semibold">
-              {("author" in article && article.author.name) || "Unknown"}
-            </p>
-            <p className="mt-2 text-sm text-muted">
-              {"author" in article && "bio" in article.author
-                ? article.author.bio
-                : "Writes for the legal community."}
-            </p>
-            <Link
-              href={`/author/${("author" in article && article.author.username) || ""}`}
-              className="mt-4 inline-block text-sm font-medium text-accent"
-            >
-              View public profile
-            </Link>
-          </div>
-        </aside>
-      </div>
+        </section>
+      </article>
 
       <section id="comments" className="space-y-4">
         <h2 className="text-2xl font-semibold tracking-[-0.04em]">Comments</h2>
